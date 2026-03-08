@@ -1,0 +1,25 @@
+{
+  "name": "dony-tools-extension",
+  "version": "3.0.0",
+  "description": "dony Tools - comprehensive toolkit for Adobe After Effects",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "deploy": "tsc -b && vite build && node scripts/deploy.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-aria-components": "^1.15.1",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  }
+}

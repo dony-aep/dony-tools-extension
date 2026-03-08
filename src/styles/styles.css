@@ -1,0 +1,263 @@
+/* ============================================
+   dony Tools — Darkroom Design System
+   Target: Chrome 57 (CEP 8, AE CC 2018+)
+   Aesthetic: Monochrome · Industrial Precision
+   ============================================ */
+
+/* ============================================
+   1. Design Tokens
+   ============================================ */
+:root {
+  /* ── Backgrounds ── */
+  --bg-base: #0c0c0c;
+  --bg-primary: #111111;
+  --bg-elevated: #181818;
+  --bg-surface: #1e1e1e;
+  --bg-hover: #262626;
+  --bg-active: #2e2e2e;
+  --bg-active-hover: #3a3a3a;
+
+  /* ── Accent · White ── */
+  --accent: #ffffff;
+  --accent-hover: #e0e0e0;
+  --accent-active: #c0c0c0;
+  --accent-muted: rgba(255, 255, 255, 0.08);
+  --accent-subtle: rgba(255, 255, 255, 0.04);
+
+  /* ── Text ── */
+  --text-primary: #ededed;
+  --text-secondary: #7a7a7a;
+  --text-muted: #484848;
+  --text-on-accent: #0c0c0c;
+
+  /* ── Borders ── */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.10);
+  --border-accent: rgba(255, 255, 255, 0.20);
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.7);
+
+  /* ── Radius ── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  /* ── Transition ── */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration: 0.2s;
+
+  /* ── Comp Names ── */
+  --bg-comp-names: #131313;
+}
+
+/* ============================================
+   2. Reset & Base
+   ============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  font-family: 'Google Sans', system-ui, -apple-system, sans-serif;
+  font-weight: 400;
+  background-color: var(--bg-base);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  height: 100%;
+}
+
+#root {
+  height: 100%;
+}
+
+/* ============================================
+   3. Scrollbar
+   ============================================ */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-active);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-active-hover);
+}
+
+/* ============================================
+   4. Base Input Styles
+   ============================================ */
+input[type="text"],
+input[type="number"] {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 400;
+  width: 100%;
+  transition: border-color var(--duration) var(--ease),
+              box-shadow var(--duration) var(--ease),
+              background-color var(--duration) var(--ease);
+}
+
+input[type="text"]:hover,
+input[type="number"]:hover {
+  border-color: var(--border-hover);
+  background-color: var(--bg-hover);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 2px var(--accent-muted);
+  background-color: var(--bg-surface);
+}
+
+/* ============================================
+   5. Base Button Styles
+   ============================================ */
+button {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--duration) var(--ease),
+              border-color var(--duration) var(--ease),
+              box-shadow var(--duration) var(--ease),
+              transform 0.1s var(--ease);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+button:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--border-hover);
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+.primary-btn {
+  background-color: var(--accent);
+  color: var(--text-on-accent);
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.primary-btn:hover {
+  background-color: var(--accent-hover);
+  border-color: transparent;
+  box-shadow: 0 2px 12px rgba(255, 255, 255, 0.12);
+}
+
+.primary-btn:active {
+  background-color: var(--accent-active);
+  border-color: transparent;
+  transform: scale(0.97);
+}
+
+.icon-btn {
+  padding: 8px;
+  min-width: 36px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.5;
+  transition: opacity var(--duration) var(--ease);
+}
+
+.icon-btn:hover img {
+  opacity: 0.9;
+}
+
+.icon-btn .material-symbols-outlined {
+  opacity: 0.5;
+  transition: opacity var(--duration) var(--ease);
+}
+
+.icon-btn:hover .material-symbols-outlined {
+  opacity: 0.9;
+}
+
+.btn-icon {
+  vertical-align: middle;
+  font-size: 18px;
+}
+
+/* ============================================
+   6. Accessibility
+   ============================================ */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+
+button:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+button:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 2px var(--accent-muted);
+}
+
+/* ============================================
+   7. Panel Layout (CEP panels are always narrow)
+   ============================================ */
+input[type="text"],
+input[type="number"] {
+  width: 100%;
+}

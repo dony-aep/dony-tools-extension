@@ -1,0 +1,130 @@
+/* ============================================
+   AnchorPointTab — Anchor Grid & Offset Controls
+   ============================================ */
+
+.tab {
+  flex: 1;
+  padding: 16px 2px 18px;
+  animation: tabEnter 0.3s var(--ease);
+}
+
+@keyframes tabEnter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Section ── */
+.panel {
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.panelTitle {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+
+/* ── 3×3 Anchor Grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-bottom: 16px;
+}
+
+.anchorBtn {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  transition: background-color var(--duration) var(--ease),
+              border-color var(--duration) var(--ease),
+              box-shadow var(--duration) var(--ease),
+              transform 0.1s var(--ease);
+}
+
+.anchorBtn:hover,
+.anchorBtn[data-hovered] {
+  background-color: var(--bg-hover);
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 1px var(--accent-muted);
+}
+
+.anchorBtn:active,
+.anchorBtn[data-pressed] {
+  transform: scale(0.94);
+  background-color: var(--bg-active);
+}
+
+.anchorBtn img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+  transition: opacity var(--duration) var(--ease);
+}
+
+.anchorBtn:hover img,
+.anchorBtn[data-hovered] img {
+  opacity: 1;
+}
+
+.anchorIcon {
+  font-size: 20px;
+  opacity: 0.7;
+  transition: opacity var(--duration) var(--ease);
+}
+
+.anchorBtn:hover .anchorIcon,
+.anchorBtn[data-hovered] .anchorIcon {
+  opacity: 1;
+}
+
+/* ── Offset Controls ── */
+.offsetControls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.offsetGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.offsetLabel {
+  min-width: 56px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+/* ── Action Buttons ── */
+.controls {
+  display: flex;
+  gap: 8px;
+}
+
+.controls button {
+  flex: 1;
+  width: 100%;
+}

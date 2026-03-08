@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+tsconfig.tsbuildinfo
+
+# IDE
+.vscode/
+*.code-workspace
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Agents / Copilot
+.agents/
+.github/copilot-instructions.md
+
+# Logs
+*.log
+npm-debug.log*

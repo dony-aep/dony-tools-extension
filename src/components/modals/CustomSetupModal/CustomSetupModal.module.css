@@ -1,0 +1,506 @@
+/* ============================================
+   CustomSetupModal — Panel-First Layout
+   ============================================ */
+
+/* ── Overlay ── */
+.overlay {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: auto;
+}
+
+.overlay[data-entering] {
+  animation: overlayEnter 0.2s var(--ease);
+}
+
+.overlay[data-exiting] {
+  animation: overlayEnter 0.15s var(--ease) reverse;
+}
+
+@keyframes overlayEnter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Modal Container ── */
+.modal {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border);
+  margin: 3% auto;
+  width: 96%;
+  max-width: 460px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  outline: none;
+  animation: modalEnter 0.3s var(--ease);
+}
+
+.modal[data-entering] {
+  animation: modalEnter 0.3s var(--ease);
+}
+
+.modal[data-exiting] {
+  animation: modalEnter 0.2s var(--ease) reverse;
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Dialog ── */
+.dialog {
+  outline: none;
+}
+
+/* ── Header ── */
+.header {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.closeBtn {
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 20px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: none;
+  border: none;
+  padding: 0;
+  min-width: 30px;
+  min-height: 30px;
+  transition: background-color var(--duration) var(--ease),
+              color var(--duration) var(--ease);
+}
+
+.closeBtn:hover,
+.closeBtn[data-hovered] {
+  color: var(--text-primary);
+  background-color: var(--bg-hover);
+}
+
+/* ── Body ── */
+.body {
+  padding: 16px 18px;
+  overflow-y: auto;
+}
+
+/* ── Footer ── */
+.footer {
+  padding: 16px 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer button {
+  width: 100%;
+}
+
+/* ── Setup Section ── */
+.section {
+  margin-bottom: 18px;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  font-weight: 600;
+  font-size: 11px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+/* ── Preset Controls ── */
+.presetControls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.presetActions {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.presetActions > span {
+  display: flex;
+  flex: 1;
+}
+
+.presetActions > span:last-child {
+  flex: 0;
+}
+
+.presetActions button {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Dimensions ── */
+.dimensionsControls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dimensionRow {
+  display: flex;
+  gap: 10px;
+}
+
+.dimensionGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dimensionGroup label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.dimensionGroup input {
+  width: 100%;
+}
+
+/* ── FPS Controls ── */
+.fpsControls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fpsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fpsGroup label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.fpsGroup input {
+  width: 100%;
+}
+
+/* ── Duration Controls ── */
+.durationControls {
+  display: flex;
+  gap: 8px;
+}
+
+.durationGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.durationGroup label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.durationGroup input {
+  width: 100%;
+}
+
+/* ── Comps Controls ── */
+.compsControls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.compsControls > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.compsControls input,
+.folderItem input {
+  height: 34px;
+}
+
+.compsControls > button {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+  flex: 0 0 34px;
+  box-sizing: border-box;
+}
+
+.compsControls > button .material-symbols-outlined {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* ── Textarea ── */
+.textarea {
+  width: 100%;
+  height: 110px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  resize: none;
+  line-height: 1.6;
+  transition: border-color var(--duration) var(--ease),
+              box-shadow var(--duration) var(--ease);
+}
+
+.textarea:hover {
+  border-color: var(--border-hover);
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-muted);
+}
+
+/* ── Folder List ── */
+.folderList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.folderItem {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.folderItem > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.folderRemoveBtn {
+  padding: 0;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  box-sizing: border-box;
+  flex: 0 0 34px;
+  flex-shrink: 0;
+}
+
+.folderRemoveBtn .material-symbols-outlined {
+  line-height: 1;
+}
+
+.folderRemoveBtn:hover {
+  color: #f44336;
+  background-color: rgba(244, 67, 54, 0.08);
+  border-color: rgba(244, 67, 54, 0.15);
+}
+
+.folderAddBtn {
+  padding: 7px 12px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.folderAddBtn:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
+}
+
+/* ── Save Preset ── */
+.savePresetControls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.savePresetControls input {
+  width: 100%;
+}
+
+.savePresetControls button {
+  width: 100%;
+}
+
+/* ── Small Button ── */
+.smallBtn {
+  padding: 7px 12px;
+  min-width: 58px;
+  font-size: 12.5px;
+}
+
+/* ============================================
+   Composition Names Section
+   ============================================ */
+.compNamesSection {
+  background-color: var(--bg-comp-names);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-top: 14px;
+  margin-bottom: 14px;
+}
+
+.compNamesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 6px;
+  padding-bottom: 4px;
+}
+
+.compNamesContainer::-webkit-scrollbar {
+  width: 3px;
+}
+
+.compNamesContainer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.compNamesContainer::-webkit-scrollbar-thumb {
+  background: var(--bg-active);
+  border-radius: 2px;
+}
+
+.compNamesContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-active-hover);
+}
+
+.compNamesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+  position: sticky;
+  top: 0;
+  background-color: var(--bg-comp-names);
+  z-index: 5;
+  padding-right: 2px;
+}
+
+.compNamesHeader .sectionTitle {
+  margin-bottom: 0;
+}
+
+.closeCompNames {
+  background-color: transparent;
+  color: var(--text-muted);
+  padding: 5px;
+  border-radius: var(--radius-sm);
+  height: 28px;
+  width: 28px;
+  min-width: 28px;
+  border: none;
+  transition: background-color var(--duration) var(--ease),
+              color var(--duration) var(--ease);
+}
+
+.closeCompNames:hover,
+.closeCompNames[data-hovered] {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.compNameInput {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+  padding: 0;
+}
+
+.compNameInput:last-child {
+  margin-bottom: 0;
+}
+
+.compLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-align: left;
+  display: block;
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.compNameRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.compNameRow input {
+  width: 100%;
+}
