@@ -1,5 +1,7 @@
 # dony Tools para Adobe After Effects
 
+![dony Tools Preview](preview.png)
+
 ## Descripción
 
 dony Tools es un completo kit de herramientas diseñado para Adobe After Effects, que proporciona un conjunto de utilidades para mejorar tu flujo de trabajo y aumentar la productividad. Esta extensión incluye módulos para la automatización de Twixtor Pro, la gestión de puntos de anclaje, la optimización de la configuración de renderizado y la configuración eficiente de proyectos. Tanto si eres un principiante como un usuario avanzado, dony Tools ofrece una gama de funciones para agilizar tu experiencia en After Effects.
