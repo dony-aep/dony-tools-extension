@@ -16,6 +16,7 @@ Thumbs.db
 
 # Agents / Copilot
 .agents/
+.claude/
 .github/copilot-instructions.md
 
 # Logs
