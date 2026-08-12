@@ -8,7 +8,7 @@ dony Tools is a comprehensive toolkit designed for Adobe After Effects, providin
 
 ## Current Version
 
-**v3.0.0** - Major Redesign & React Migration
+**v4.0.0** - Rail Navigation, Host-Derived Palette & Flat Controls
 
 For a detailed history of all changes, see the [Changelog](CHANGELOG.md).
 
@@ -117,7 +117,7 @@ For a detailed history of all changes, see the [Changelog](CHANGELOG.md).
 3. **Flyout Menu:**
     - Access the panel's flyout menu (typically three horizontal lines) for options to refresh the extension or open documentation.
 4. **Navigate:**
-    - The extension uses a Home dashboard. Tap any feature card to navigate to that tool, and use the back button to return home.
+    - A rail of tools runs down the left edge of the panel. Click any icon to switch tools — every tool is one click from every other. Widen the panel past 480px and the rail opens out to show each tool's name.
 4. **Twixtor Pro:**
     -   Select a layer in your composition.
     -   Enter the desired speed percentage in the  `Speed Input`  field.

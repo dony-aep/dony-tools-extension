@@ -8,7 +8,7 @@ dony Tools es un completo kit de herramientas diseñado para Adobe After Effects
 
 ## Versión Actual
 
-**v3.0.0** - Rediseño Mayor y Migración a React
+**v4.0.0** - Navegación por Rail, Paleta Derivada del Host y Controles Planos
 
 Para un historial detallado de todos los cambios, consulta el [Registro de Cambios](CHANGELOG_es.md).
 
@@ -117,7 +117,7 @@ Para un historial detallado de todos los cambios, consulta el [Registro de Cambi
 3. **Menú Desplegable del Panel (Flyout Menu):**
     - Accede al menú desplegable del panel (normalmente tres líneas horizontales) para opciones como refrescar la extensión o abrir la documentación.
 4. **Navegar:**
-    - La extensión utiliza un panel Home. Toca cualquier tarjeta de función para navegar a esa herramienta, y usa el botón atrás para volver al inicio.
+    - Un rail de herramientas recorre el borde izquierdo del panel. Haz clic en cualquier icono para cambiar de herramienta: todas están a un clic de todas. Si ensanchas el panel más allá de 480px, el rail se abre y muestra el nombre de cada una.
 4. **Twixtor Pro:**
     - Selecciona una capa en tu composición.
     - Introduce el porcentaje de velocidad deseado en el campo `Speed Input`.
