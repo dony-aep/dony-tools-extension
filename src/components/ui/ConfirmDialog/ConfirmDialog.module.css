@@ -1,0 +1,54 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400; /* above the setup modal, which is 200 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gutter);
+  background: var(--scrim);
+}
+
+.overlay[data-entering] {
+  animation: dt-fade var(--dur-2) var(--ease);
+}
+
+/* --raised, the same sheet level as the setup modal. Lifting it to --control
+   to compensate for the missing edge would have put the Cancel button — a
+   default Button, filled with --control — on its own colour and erased it.
+   The scrim behind does the separating instead. */
+.modal {
+  width: 100%;
+  max-width: 320px;
+  background: var(--raised);
+  border: 1px solid var(--control-edge);
+  border-radius: var(--r-2);
+  box-shadow: var(--drop);
+  outline: none;
+}
+
+.modal[data-entering] {
+  animation: dt-rise var(--dur-2) var(--ease);
+}
+
+.dialog {
+  padding: var(--s-4);
+  outline: none;
+}
+
+.message {
+  font-size: var(--t-label);
+  line-height: 1.45;
+  color: var(--ink-hi);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  gap: var(--s-2);
+  margin-top: var(--s-4);
+}
+
+.actions > * {
+  flex: 1;
+}

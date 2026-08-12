@@ -1,30 +1,46 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useApp } from './context/AppContext'
+import { useHostTheme } from './hooks/useHostTheme'
 import { TwixtorTab } from './components/tabs/TwixtorTab'
 import { AnchorPointTab } from './components/tabs/AnchorPointTab'
 import { RenderSettingsTab } from './components/tabs/RenderSettingsTab'
 import { SetupTab } from './components/tabs/SetupTab'
 import { AboutTab } from './components/tabs/AboutTab'
-import { HomeTab } from './components/tabs/HomeTab'
 import { CustomSetupModal } from './components/modals/CustomSetupModal'
+import { Icon } from './components/ui/Icon'
 import styles from './App.module.css'
 
-export type TabId = 'home' | 'twixtor' | 'anchor' | 'render' | 'setup' | 'about'
+export type TabId = 'twixtor' | 'anchor' | 'render' | 'setup' | 'about'
 
-const TAB_LABELS: Record<Exclude<TabId, 'home'>, { label: string; icon: string }> = {
-  twixtor: { label: 'Twixtor', icon: 'speed' },
-  anchor: { label: 'Anchor Point', icon: 'anchor' },
-  render: { label: 'Render', icon: 'movie' },
-  setup: { label: 'Setup', icon: 'build' },
-  about: { label: 'About', icon: 'info' },
+interface RailItem {
+  id: TabId
+  label: string
+  icon: string
+  title: string
 }
 
+/* The four tools sit at the top of the rail; About is meta and sits at the
+   foot with the version, separated by a rule. */
+const TOOLS: RailItem[] = [
+  { id: 'twixtor', label: 'Twixtor', icon: 'speed', title: 'Twixtor Pro retiming controls' },
+  { id: 'anchor', label: 'Anchor Point', icon: 'anchor', title: 'Anchor point positioning' },
+  { id: 'render', label: 'Render', icon: 'movie', title: 'Render queue & output modules' },
+  { id: 'setup', label: 'Setup', icon: 'build', title: 'Project setup presets' },
+]
+
+const META: RailItem[] = [
+  { id: 'about', label: 'About', icon: 'info', title: 'About dony Tools' },
+]
+
 export function App() {
-  const [activeTab, setActiveTab] = useState<TabId>('home')
+  const [activeTab, setActiveTab] = useState<TabId>('twixtor')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [hasScrollbar, setHasScrollbar] = useState(false)
   const tabContentRef = useRef<HTMLDivElement>(null)
-  const { setFlyoutMenu, addEventListener } = useApp()
+  const { version, setFlyoutMenu, addEventListener, removeEventListener } = useApp()
+
+  // Adopt After Effects' UI greys and follow its brightness slider.
+  useHostTheme()
 
   // Initialize flyout menu
   useEffect(() => {
@@ -54,7 +70,11 @@ export function App() {
     }
 
     addEventListener('com.adobe.csxs.events.flyoutMenuClicked', handleFlyoutClick)
-  }, [setFlyoutMenu, addEventListener])
+
+    return () => {
+      removeEventListener('com.adobe.csxs.events.flyoutMenuClicked', handleFlyoutClick)
+    }
+  }, [setFlyoutMenu, addEventListener, removeEventListener])
 
   // Check scrollbar presence
   const checkScrollbar = useCallback(() => {
@@ -72,45 +92,55 @@ export function App() {
 
   // Re-check scrollbar when tab changes
   useEffect(() => {
-    setTimeout(checkScrollbar, 50)
+    const timeoutId = window.setTimeout(checkScrollbar, 50)
+    return () => window.clearTimeout(timeoutId)
   }, [activeTab, checkScrollbar])
 
-  const goHome = useCallback(() => setActiveTab('home'), [])
+  const openTab = [...TOOLS, ...META].find((t) => t.id === activeTab) ?? TOOLS[0]
+
+  // Below the wide step the label is hidden, so the button's name comes from
+  // aria-label; above it, both carry the same words.
+  const renderRailButton = (item: RailItem) => (
+    <button
+      key={item.id}
+      type="button"
+      className={`${styles.railBtn}${activeTab === item.id ? ` ${styles.railBtnActive}` : ''}`}
+      onClick={() => setActiveTab(item.id)}
+      aria-current={activeTab === item.id ? 'true' : undefined}
+      aria-label={item.label}
+      title={item.title}
+    >
+      <Icon name={item.icon} size={19} />
+      <span className={styles.railLabel}>{item.label}</span>
+    </button>
+  )
 
   return (
-    <div className={styles.content}>
-      {activeTab !== 'home' && (
-        <div className={styles.backBar}>
-          <button
-            type="button"
-            className={styles.backBtn}
-            onClick={goHome}
-            aria-label="Back to Home"
-          >
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <div className={styles.backBarDivider} />
-          <div className={styles.backBarInfo}>
-            <span className={`material-symbols-outlined ${styles.backBarIcon}`}>
-              {TAB_LABELS[activeTab as Exclude<TabId, 'home'>].icon}
-            </span>
-            <span className={styles.backBarLabel}>
-              {TAB_LABELS[activeTab as Exclude<TabId, 'home'>].label}
-            </span>
-          </div>
+    <div className={styles.shell}>
+      <nav className={styles.rail} aria-label="Tools">
+        <div className={styles.railGroup}>{TOOLS.map(renderRailButton)}</div>
+        <div className={styles.railMeta}>
+          {META.map(renderRailButton)}
+          <span className={styles.railVersion}>v{version}</span>
         </div>
-      )}
+      </nav>
 
-      <div
-        ref={tabContentRef}
-        className={`${styles.tabContent}${hasScrollbar ? ` ${styles.hasScrollbar}` : ''}${activeTab !== 'home' ? ` ${styles.withBackBar}` : ''}`}
-      >
-        {activeTab === 'home' && <HomeTab onNavigate={setActiveTab} />}
-        {activeTab === 'twixtor' && <TwixtorTab />}
-        {activeTab === 'anchor' && <AnchorPointTab />}
-        {activeTab === 'render' && <RenderSettingsTab />}
-        {activeTab === 'setup' && <SetupTab onOpenCustomSetup={() => setIsModalOpen(true)} />}
-        {activeTab === 'about' && <AboutTab />}
+      <div className={styles.column}>
+        <header key={activeTab} className={styles.title}>
+          <Icon name={openTab.icon} size={16} className={styles.titleIcon} />
+          <h1 className={styles.titleText}>{openTab.label}</h1>
+        </header>
+
+        <div
+          ref={tabContentRef}
+          className={`${styles.content}${hasScrollbar ? ` ${styles.hasScrollbar}` : ''}`}
+        >
+          {activeTab === 'twixtor' && <TwixtorTab />}
+          {activeTab === 'anchor' && <AnchorPointTab />}
+          {activeTab === 'render' && <RenderSettingsTab />}
+          {activeTab === 'setup' && <SetupTab onOpenCustomSetup={() => setIsModalOpen(true)} />}
+          {activeTab === 'about' && <AboutTab />}
+        </div>
       </div>
 
       {isModalOpen && (

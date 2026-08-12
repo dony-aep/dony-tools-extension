@@ -1,0 +1,164 @@
+/* ============================================================
+   dony Tools — design tokens
+   "Bench": a rack of tools docked beside the comp. Strict
+   monochrome — no hue anywhere. State reads through luminance,
+   icon and motion, never colour (same rule as Timer Keeper).
+
+   Contrast is a hard constraint, not a preference. Every ink
+   token below is annotated with its measured WCAG ratio against
+   the surface it is allowed to sit on.
+   ============================================================ */
+
+:root {
+  color-scheme: dark;
+
+  /* ── Surfaces ──
+     Static fallback only: inside After Effects deriveTheme() overwrites all
+     of these from the grey the host reports, solving each one for a contrast
+     ratio against the ground. The values here are that same ramp solved for
+     #0d0d0d, so the browser preview matches the panel. Ratios vs --ground:
+
+       --raised  1.05   modal sheet — deliberately near the ground, so the
+                        controls sitting on it keep their own contrast
+       --plate   1.14   popovers, toasts, the rail, the update notice
+       --control 1.35   every button, field and dropdown
+
+     1.35 on --control is a ceiling, not a preference: ink is solved against
+     it, and a lighter fill leaves too little headroom to fit four distinct
+     ink levels while --ink-lo still clears 4.5:1. */
+  --ground: #0d0d0d;   /* panel background                    */
+  --raised: #141414;   /* modal body, nested containers       */
+  --plate: #1c1c1c;    /* grouped regions, popovers, rail     */
+  --control: #2a2a2a;  /* inputs, buttons, dropdowns          */
+  --control-hover: #363636;
+  --control-press: #3e3e3e;
+
+  /* ── Hairlines ──
+     --rule is decorative (structure only, exempt from 1.4.11).
+     --edge bounds interactive controls: 2.61:1 against --ground — softened
+     from #606060 (3.09:1) as a deliberate call, so the panel reads calmer
+     next to After Effects' own chrome. That is under the 3:1 of WCAG 1.4.11,
+     and the floor to get back over it is #5E5E5E (3.00:1). Hover stays bright
+     so the boundary still announces itself the moment it matters. */
+  --rule: #2d2d2d;
+  --edge: #555555;
+  --edge-hover: #8a8a8a;
+
+  /* ── Control edge — flip these two to change the whole panel's look ──
+     Everything the user operates takes its border from here instead of
+     --edge: buttons, value fields, dropdown triggers, text inputs, the
+     checkbox, the setup presets and the anchor keypad. Currently flat, so
+     the fill alone says "this is a control".
+
+     What --edge still bounds is the things you don't operate — the popover,
+     the confirm dialog, toasts, the Twixtor status box and the About update
+     notice. Those float over content or carry a warning, and their edge is
+     what separates them from what is behind. Leave them outlined.
+
+     The cost of flat: --control is 1.25:1 against --ground, well under the
+     3:1 that WCAG 1.4.11 asks of a control boundary, and the 16px checkbox
+     is where that bites hardest. Restore the outlines by pointing these two
+     back at var(--edge) and var(--edge-hover).
+
+     Kept as a transparent 1px border rather than removed, so flipping back
+     and forth never resizes anything. */
+  --control-edge: transparent;
+  --control-edge-hover: transparent;
+
+  /* ── Ink ── */
+  --ink-hi: #eaeaea;   /* 12:1 on control — headings, values       */
+  --ink: #b5b5b5;      /*  7:1 on control — body                   */
+  --ink-lo: #909090;   /*  4.5:1 on control — labels, eyebrows     */
+  --ink-dim: #727272;  /*  3:1 on control — decorative icons, disabled. Never
+                          the sole carrier of information. */
+
+  /* ── Inverted key (primary action) ── */
+  --key: #ededed;
+  --key-hover: #ffffff;
+  --key-press: #c9c9c9;
+  --key-ink: #0d0d0d;  /* 16.6:1 on --key */
+
+  /* ── Selection ──
+     The one place a hue is allowed, and it is not ours: inside After Effects
+     this is overwritten with the host's own highlight colour, so a selected
+     row matches every other selection in the app. Never the sole carrier of
+     meaning — selection is always also marked by weight or a bar. */
+  --select: #ededed;
+
+  /* ── Veils ── */
+  --veil: rgba(237, 237, 237, 0.06);
+  --veil-strong: rgba(237, 237, 237, 0.1);
+  --scrim: rgba(0, 0, 0, 0.72);
+  --drop: 0 12px 32px rgba(0, 0, 0, 0.55);
+
+  /* ── Type ──
+     One family, sentence case throughout. Hierarchy comes from size, weight
+     and ink — nothing is set in caps, which read as shouting at these sizes.
+     Integer sizes only: half-pixels blur on the CEP renderer. */
+  --font: 'Google Sans', system-ui, -apple-system, sans-serif;
+
+  --t-display: 15px;  /* wordmark                             */
+  --t-value: 17px;    /* numeric field values (tabular)       */
+  --t-body: 13px;     /* running text, option lists           */
+  --t-label: 12px;    /* control labels, button text          */
+  --t-eyebrow: 11px;  /* section titles, field labels         */
+  --t-micro: 11px;    /* meta, hints, units                   */
+
+  /* ── Space (4px scale) ── */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+
+  /* ── Panel width steps ──
+     After Effects ignores the manifest MinSize once a panel is docked, so the
+     real range is whatever the user drags it to. Treated mobile-first: the
+     base styles target the smallest usable panel and each step adds room.
+
+     These are *panel* widths, but what a control actually gets is narrower:
+     the rail is always on screen, so content = panel − 44 − 2 × gutter. Each
+     threshold below is the panel width at which the content it leaves is
+     enough for the change:
+
+       base      < 300px   compact   · 10px gutter, labels above their control
+       ≥ 300px   standard  · 12px gutter, paired value fields survive
+       ≥ 380px   roomy     · 16px gutter, labels beside their control (≈320px of content)
+       ≥ 480px   wide      · the rail opens out and names its tools
+
+     Media queries, not container queries: CEP tops out at Chromium 99 and
+     @container needs 105. The panel IS the viewport here, so they behave the
+     same. Keep these three numbers in sync wherever they appear — roomy in
+     Dropdown.module.css, wide in App.module.css. */
+  --gutter: 10px;
+
+  /* ── Shape ── */
+  --r-1: 6px;   /* controls, rows          */
+  --r-2: 10px;  /* plates, cards, popovers */
+  --r-3: 14px;  /* modal                   */
+
+  /* ── Controls ── */
+  --control-h: 34px;  /* one height for every input, button and dropdown */
+
+  /* ── Focus — 2px, 16.6:1 against ground ── */
+  --focus-ring: 2px solid var(--ink-hi);
+
+  /* ── Motion ── */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-1: 110ms;
+  --dur-2: 180ms;
+  --dur-3: 300ms;
+}
+
+@media (min-width: 300px) {
+  :root {
+    --gutter: 12px;
+  }
+}
+
+@media (min-width: 380px) {
+  :root {
+    --gutter: 16px;
+  }
+}
+

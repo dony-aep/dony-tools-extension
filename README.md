@@ -184,7 +184,9 @@ For a detailed history of all changes, see the [Changelog](CHANGELOG.md).
 
 ## Compatibility
 
-This extension is designed to be compatible with **Adobe After Effects CC 2018 (version 15.0) and later versions**, up to After Effects 2026. It uses the CEP (Common Extensibility Platform) with CSXS 8 runtime support.
+This extension requires **Adobe After Effects 2022 (version 22.0) or later**, up to After Effects 2026. It runs on CEP (Common Extensibility Platform) 11 / Chromium 88.
+
+> **Upgrading from 3.x:** version 4.0.0 raised the minimum from After Effects CC 2018 and changed the extension's bundle id to `com.donyaep.DonyTools`. Delete the old `com.dony.tools` folder from your CEP extensions directory and restart After Effects once, or you will see two dony Tools panels.
 
 > **Note:** Adobe is gradually migrating from CEP to UXP. CEP is still fully supported in After Effects 2026, but may be retired in future versions.
 

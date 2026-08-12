@@ -1,0 +1,88 @@
+/* ============================================================
+   Toasts — in-panel feedback, replacing the host's modal alerts.
+   Monochrome: state reads through icon and luminance, never hue.
+   ============================================================ */
+
+.viewport {
+  position: fixed;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: var(--gutter);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  pointer-events: none;
+}
+
+/* --control, not --plate: with the border gone that is the only surface that
+   still reads as lifted off the panel, and the shadow does the rest. */
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-2) var(--s-2) var(--s-3);
+  background: var(--control);
+  border: 1px solid var(--control-edge);
+  border-radius: var(--r-1);
+  box-shadow: var(--drop);
+  pointer-events: auto;
+  animation: dt-rise var(--dur-2) var(--ease);
+}
+
+.leaving {
+  animation: dt-fade var(--dur-2) var(--ease) reverse forwards;
+}
+
+/* Severity is carried by the icon and by how bright the surface reads. The
+   edge used to do half that job; the fill took it over when it went flat. */
+.success .kindIcon,
+.info .kindIcon {
+  color: var(--ink-lo);
+}
+
+.warning,
+.error {
+  background: var(--control-hover);
+}
+
+.warning .kindIcon,
+.error .kindIcon {
+  color: var(--ink-hi);
+}
+
+.kindIcon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.message {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-micro);
+  line-height: 1.4;
+  color: var(--ink-hi);
+  overflow-wrap: anywhere;
+}
+
+.close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-1);
+  background: transparent;
+  color: var(--ink-lo);
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease),
+              color var(--dur-1) var(--ease);
+}
+
+.close[data-hovered] {
+  background: var(--veil);
+  color: var(--ink-hi);
+}

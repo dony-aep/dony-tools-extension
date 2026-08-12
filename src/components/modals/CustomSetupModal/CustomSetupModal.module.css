@@ -1,506 +1,279 @@
-/* ============================================
-   CustomSetupModal — Panel-First Layout
-   ============================================ */
+/* ============================================================
+   CustomSetupModal — a full form inside a panel that may only be
+   300px tall, so the body is the only thing that scrolls and the
+   header and footer stay put.
+   ============================================================ */
 
-/* ── Overlay ── */
 .overlay {
   position: fixed;
-  z-index: 200;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 200;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  overflow: auto;
+  padding: var(--s-3);
+  background: var(--scrim);
 }
 
 .overlay[data-entering] {
-  animation: overlayEnter 0.2s var(--ease);
+  animation: dt-fade var(--dur-2) var(--ease);
 }
 
 .overlay[data-exiting] {
-  animation: overlayEnter 0.15s var(--ease) reverse;
+  animation: dt-fade var(--dur-1) var(--ease) reverse;
 }
 
-@keyframes overlayEnter {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-/* ── Modal Container ── */
 .modal {
-  background-color: var(--bg-primary);
-  border: 1px solid var(--border);
-  margin: 3% auto;
-  width: 96%;
-  max-width: 460px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  display: flex;
+  width: 100%;
+  max-width: 440px;
+  max-height: 100%;
+  /* Stays on --raised, unlike the confirm dialog: this sheet is full of
+     fields, and lifting it to --control would take back exactly the contrast
+     those fields need. The scrim and the shadow separate it instead. */
+  background: var(--raised);
+  border: 1px solid var(--control-edge);
+  border-radius: var(--r-3);
+  box-shadow: var(--drop);
   outline: none;
-  animation: modalEnter 0.3s var(--ease);
+  overflow: hidden;
 }
 
 .modal[data-entering] {
-  animation: modalEnter 0.3s var(--ease);
+  animation: dt-rise var(--dur-3) var(--ease);
 }
 
 .modal[data-exiting] {
-  animation: modalEnter 0.2s var(--ease) reverse;
+  animation: dt-fade var(--dur-1) var(--ease) reverse;
 }
 
-@keyframes modalEnter {
-  from {
-    opacity: 0;
-    transform: translateY(-16px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* ── Dialog ── */
 .dialog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
   outline: none;
 }
 
 /* ── Header ── */
 .header {
-  padding: 16px 18px;
-  border-bottom: 1px solid var(--border);
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  flex: 0 0 auto;
+  padding: var(--s-2) var(--s-2) var(--s-2) var(--gutter);
+  border-bottom: 1px solid var(--rule);
 }
 
 .headerTitle {
-  margin: 0;
-  font-size: 15px;
+  font-size: var(--t-label);
   font-weight: 600;
-  color: var(--text-primary);
   letter-spacing: -0.01em;
-}
-
-.closeBtn {
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 20px;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  background: none;
-  border: none;
-  padding: 0;
-  min-width: 30px;
-  min-height: 30px;
-  transition: background-color var(--duration) var(--ease),
-              color var(--duration) var(--ease);
-}
-
-.closeBtn:hover,
-.closeBtn[data-hovered] {
-  color: var(--text-primary);
-  background-color: var(--bg-hover);
+  color: var(--ink-hi);
 }
 
 /* ── Body ── */
 .body {
-  padding: 16px 18px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  padding: var(--gutter);
 }
 
-/* ── Footer ── */
+/* ── Footer ──
+   The action you came for is full width; the ways out share a row. */
 .footer {
-  padding: 16px 18px;
-  border-top: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--s-2);
+  flex: 0 0 auto;
+  padding: var(--s-2) var(--gutter);
+  border-top: 1px solid var(--rule);
 }
 
-.footer button {
-  width: 100%;
+.footerSecondary {
+  display: flex;
+  gap: var(--s-2);
 }
 
-/* ── Setup Section ── */
-.section {
-  margin-bottom: 18px;
+.footerSecondary > * {
+  flex: 1;
 }
 
-.section:last-child {
-  margin-bottom: 0;
+/* ── Sections ── */
+.section + .section {
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
 }
 
 .sectionTitle {
+  font-size: var(--t-eyebrow);
   font-weight: 600;
-  font-size: 11px;
-  margin-bottom: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
+  line-height: 1.4;
+  color: var(--ink-lo);
+  margin-bottom: var(--s-2);
 }
 
-/* ── Preset Controls ── */
-.presetControls {
+.stack {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--s-2);
+}
+
+/* Value fields wrap instead of crushing on a narrow panel. The modal sits
+   inside the panel, so at 270px it only has ~215px of usable width. */
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  gap: var(--s-2);
+}
+
+.row {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.row > :first-child {
+  flex: 1;
+  min-width: 0;
 }
 
 .presetActions {
   display: flex;
-  gap: 8px;
-  align-items: stretch;
+  gap: var(--s-2);
 }
 
-.presetActions > span {
-  display: flex;
+.presetActions > :not(:last-child) {
   flex: 1;
 }
 
-.presetActions > span:last-child {
-  flex: 0;
+/* ── Comp names ── */
+.comps {
+  margin-top: var(--s-3);
+  padding: var(--s-3);
+  background: var(--plate);
+  border: 1px solid var(--control-edge);
+  border-radius: var(--r-2);
 }
 
-.presetActions button {
-  width: 100%;
-  height: 100%;
-}
-
-/* ── Dimensions ── */
-.dimensionsControls {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.dimensionRow {
-  display: flex;
-  gap: 10px;
-}
-
-.dimensionGroup {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.dimensionGroup label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-.dimensionGroup input {
-  width: 100%;
-}
-
-/* ── FPS Controls ── */
-.fpsControls {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.fpsGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.fpsGroup label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-.fpsGroup input {
-  width: 100%;
-}
-
-/* ── Duration Controls ── */
-.durationControls {
-  display: flex;
-  gap: 8px;
-}
-
-.durationGroup {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.durationGroup label {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-.durationGroup input {
-  width: 100%;
-}
-
-/* ── Comps Controls ── */
-.compsControls {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.compsControls > div {
-  flex: 1;
-  min-width: 0;
-}
-
-.compsControls input,
-.folderItem input {
-  height: 34px;
-}
-
-.compsControls > button {
-  width: 34px;
-  height: 34px;
-  min-width: 34px;
-  min-height: 34px;
-  padding: 0;
-  flex: 0 0 34px;
-  box-sizing: border-box;
-}
-
-.compsControls > button .material-symbols-outlined {
-  font-size: 20px;
-  line-height: 1;
-}
-
-/* ── Textarea ── */
-.textarea {
-  width: 100%;
-  height: 110px;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 400;
-  resize: none;
-  line-height: 1.6;
-  transition: border-color var(--duration) var(--ease),
-              box-shadow var(--duration) var(--ease);
-}
-
-.textarea:hover {
-  border-color: var(--border-hover);
-}
-
-.textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-muted);
-}
-
-/* ── Folder List ── */
-.folderList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.folderItem {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.folderItem > div {
-  flex: 1;
-  min-width: 0;
-}
-
-.folderRemoveBtn {
-  padding: 0;
-  width: 34px;
-  height: 34px;
-  min-width: 34px;
-  min-height: 34px;
-  background: none;
-  border: 1px solid transparent;
-  color: var(--text-muted);
+.compsHeader {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  box-sizing: border-box;
-  flex: 0 0 34px;
-  flex-shrink: 0;
-}
-
-.folderRemoveBtn .material-symbols-outlined {
-  line-height: 1;
-}
-
-.folderRemoveBtn:hover {
-  color: #f44336;
-  background-color: rgba(244, 67, 54, 0.08);
-  border-color: rgba(244, 67, 54, 0.15);
-}
-
-.folderAddBtn {
-  padding: 7px 12px;
-  font-size: 12.5px;
-  color: var(--text-secondary);
-  background: none;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  width: 100%;
-}
-
-.folderAddBtn:hover {
-  border-color: var(--border-hover);
-  color: var(--text-primary);
-  background-color: var(--bg-surface);
-}
-
-/* ── Save Preset ── */
-.savePresetControls {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.savePresetControls input {
-  width: 100%;
-}
-
-.savePresetControls button {
-  width: 100%;
-}
-
-/* ── Small Button ── */
-.smallBtn {
-  padding: 7px 12px;
-  min-width: 58px;
-  font-size: 12.5px;
-}
-
-/* ============================================
-   Composition Names Section
-   ============================================ */
-.compNamesSection {
-  background-color: var(--bg-comp-names);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 14px;
-  margin-top: 14px;
-  margin-bottom: 14px;
-}
-
-.compNamesContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 0;
-  max-height: 280px;
-  overflow-y: auto;
-  padding-right: 6px;
-  padding-bottom: 4px;
-}
-
-.compNamesContainer::-webkit-scrollbar {
-  width: 3px;
-}
-
-.compNamesContainer::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.compNamesContainer::-webkit-scrollbar-thumb {
-  background: var(--bg-active);
-  border-radius: 2px;
-}
-
-.compNamesContainer::-webkit-scrollbar-thumb:hover {
-  background: var(--bg-active-hover);
-}
-
-.compNamesHeader {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 10px;
-  position: sticky;
-  top: 0;
-  background-color: var(--bg-comp-names);
-  z-index: 5;
-  padding-right: 2px;
+  gap: var(--s-2);
+  padding-bottom: var(--s-2);
+  margin-bottom: var(--s-3);
+  border-bottom: 1px solid var(--rule);
 }
 
-.compNamesHeader .sectionTitle {
+.compsHeader .sectionTitle {
   margin-bottom: 0;
 }
 
-.closeCompNames {
-  background-color: transparent;
-  color: var(--text-muted);
-  padding: 5px;
-  border-radius: var(--radius-sm);
-  height: 28px;
-  width: 28px;
-  min-width: 28px;
-  border: none;
-  transition: background-color var(--duration) var(--ease),
-              color var(--duration) var(--ease);
-}
-
-.closeCompNames:hover,
-.closeCompNames[data-hovered] {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-.compNameInput {
+.compsList {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  margin-bottom: 12px;
-  align-items: flex-start;
-  padding: 0;
+  gap: var(--s-3);
+  max-height: 260px;
+  overflow-y: auto;
 }
 
-.compNameInput:last-child {
-  margin-bottom: 0;
+.comp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
 }
 
 .compLabel {
-  font-size: 11px;
-  color: var(--text-muted);
+  font-size: var(--t-eyebrow);
   font-weight: 600;
-  text-align: left;
-  display: block;
-  width: 100%;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  color: var(--ink-lo);
 }
 
-.compNameRow {
+/* ── Folders ── */
+.folders {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 100%;
+  gap: var(--s-2);
 }
 
-.compNameRow input {
+.folderRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.folderRow > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Was a dashed outline on nothing, which flat would have erased entirely —
+   the outline *was* the control. It gets the same fill as every other control
+   instead, and stays quieter than a real button through its ink, not its
+   edge. Restore the "empty slot" read with: background: transparent and
+   border: 1px dashed var(--edge). */
+.addFolder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
   width: 100%;
+  height: var(--control-h);
+  background: var(--control);
+  border: 1px solid var(--control-edge);
+  border-radius: var(--r-1);
+  color: var(--ink-lo);
+  font-size: var(--t-label);
+  cursor: pointer;
+  transition: color var(--dur-1) var(--ease),
+              border-color var(--dur-1) var(--ease),
+              background-color var(--dur-1) var(--ease);
+}
+
+.addFolder[data-hovered] {
+  background: var(--control-hover);
+  border-color: var(--control-edge-hover);
+  color: var(--ink-hi);
+}
+
+/* ── Plain text input (names, not numbers) ── */
+.textField {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.textInput {
+  width: 100%;
+  height: var(--control-h);
+  padding: 0 var(--s-3);
+  background: var(--control);
+  border: 1px solid var(--control-edge);
+  border-radius: var(--r-1);
+  color: var(--ink-hi);
+  font-size: var(--t-label);
+  transition: border-color var(--dur-1) var(--ease),
+              background-color var(--dur-1) var(--ease);
+}
+
+.textInput[data-hovered] {
+  background: var(--control-hover);
+  border-color: var(--control-edge-hover);
+}
+
+/* Inset so the ring lands on the field's own border rather than floating 2px
+   outside it — the same trick ValueField uses, and the panel's reference for
+   what a focused field looks like. The global :focus-visible is outset, which
+   is right for a button and wrong for a text field. */
+.textInput[data-focused] {
+  border-color: var(--ink-hi);
+  outline: var(--focus-ring);
+  outline-offset: -1px;
+}
+
+.textInput::placeholder {
+  color: var(--ink-lo);
 }

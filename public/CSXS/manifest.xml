@@ -1,30 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ExtensionManifest Version="7.0" ExtensionBundleId="com.dony.tools" ExtensionBundleVersion="3.0.0"
+<ExtensionManifest Version="11.0" ExtensionBundleId="com.donyaep.DonyTools" ExtensionBundleVersion="__APP_VERSION__"
     ExtensionBundleName="dony Tools" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <ExtensionList>
-        <Extension Id="com.dony.tools" Version="3.0.0" />
+        <Extension Id="com.donyaep.DonyTools.panel" Version="__APP_VERSION__" />
     </ExtensionList>
     <ExecutionEnvironment>
         <HostList>
-            <Host Name="AEFT" Version="15.0" />
+            <!-- After Effects 2022 (22.0) and above – CEP 11 / Chromium 88. The panel's own
+                 floor is CEP 11 (After Effects 2021 / 18.0), raised to 22.0 to keep one
+                 support matrix across dony Tools, Layers Pane Plus and Timer Keeper. -->
+            <Host Name="AEFT" Version="22.0" />
         </HostList>
         <LocaleList>
             <Locale Code="All" />
         </LocaleList>
         <RequiredRuntimeList>
-            <RequiredRuntime Name="CSXS" Version="8.0" />
+            <RequiredRuntime Name="CSXS" Version="11.0" />
         </RequiredRuntimeList>
     </ExecutionEnvironment>
     <DispatchInfoList>
-        <Extension Id="com.dony.tools">
+        <Extension Id="com.donyaep.DonyTools.panel">
             <DispatchInfo>
                 <Resources>
                     <MainPath>./index.html</MainPath>
                     <ScriptPath>./jsx/hostscript.jsx</ScriptPath>
-                    <CEFCommandLine>
-                        <Parameter>--enable-nodejs</Parameter>
-                        <Parameter>--mixed-context</Parameter>
-                    </CEFCommandLine>
                 </Resources>
                 <Lifecycle>
                     <AutoVisible>true</AutoVisible>
@@ -50,4 +49,4 @@
             </DispatchInfo>
         </Extension>
     </DispatchInfoList>
-</ExtensionManifest> 
+</ExtensionManifest>

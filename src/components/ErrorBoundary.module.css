@@ -1,0 +1,38 @@
+/* ============================================================
+   ErrorBoundary — the panel's last screen. Same system as the
+   rest: monochrome, no hue carrying the alarm.
+   ============================================================ */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  height: 100%;
+  padding: var(--s-5) var(--s-4);
+  text-align: center;
+}
+
+.icon {
+  color: var(--ink-hi);
+}
+
+.title {
+  font-size: var(--t-label);
+  font-weight: 600;
+  color: var(--ink-hi);
+}
+
+.detail {
+  max-width: 260px;
+  font-size: var(--t-micro);
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.actions {
+  display: flex;
+  gap: var(--s-2);
+  margin-top: var(--s-1);
+}

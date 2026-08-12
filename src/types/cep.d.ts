@@ -4,6 +4,9 @@
  */
 
 declare class CSInterface {
+  /** Fired when the host's UI brightness changes. */
+  static readonly THEME_COLOR_CHANGED_EVENT: 'com.adobe.csxs.events.ThemeColorChanged';
+
   /** Returns the unique identifier of this extension */
   getExtensionID(): string;
 
@@ -86,7 +89,9 @@ declare interface AppSkinInfo {
   panelBackgroundColor: ColorInfo;
   appBarBackgroundColorSRGB: ColorInfo;
   panelBackgroundColorSRGB: ColorInfo;
-  systemHighlightColor: ColorInfo;
+  /** Bare RGBColor at runtime — unlike the *BackgroundColor fields, After
+   *  Effects does not wrap this one in a ColorInfo. */
+  systemHighlightColor: RGBColor;
 }
 
 declare interface ColorInfo {

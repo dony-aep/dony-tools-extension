@@ -1,7 +1,13 @@
 import { useState, useCallback, useEffect } from 'react'
-import { Button, Checkbox, Input, TextField } from 'react-aria-components'
 import { useApp } from '../../../context/AppContext'
+import { toEvalLiteral } from '../../../hooks/useCSInterface'
+import { isNumeric, useNumericInput } from '../../../hooks/useNumericInput'
 import { Dropdown } from '../../ui/Dropdown'
+import { Button } from '../../ui/Button'
+import { Icon } from '../../ui/Icon'
+import { Section } from '../../ui/Section'
+import { Toggle } from '../../ui/Toggle'
+import { ValueField } from '../../ui/ValueField'
 import styles from './TwixtorTab.module.css'
 
 interface TwixtorInfo {
@@ -47,11 +53,11 @@ export function TwixtorTab() {
   const [warping, setWarping] = useState('2')
   const [batchMode, setBatchMode] = useState(false)
   const [twixtorInfo, setTwixtorInfo] = useState<TwixtorInfo | null>(null)
-  const { evalScript } = useApp()
+  const { evalHostScript, notify } = useApp()
 
   useEffect(() => {
     let cancelled = false
-    evalScript('getTwixtorInfo()').then((result) => {
+    evalHostScript('getTwixtorInfo()').then((result) => {
       if (cancelled) return
       try {
         const info = JSON.parse(result) as TwixtorInfo
@@ -61,22 +67,22 @@ export function TwixtorTab() {
       }
     })
     return () => { cancelled = true }
-  }, [evalScript])
+  }, [evalHostScript])
 
-  const isNumeric = (value: string) => !isNaN(parseFloat(value)) && isFinite(Number(value))
+  const handleNumericChange = useNumericInput()
 
   const handleApplyTwixtor = useCallback(async () => {
     if (!isNumeric(speed)) {
-      await evalScript('showSpeedAlert()')
+      notify('Speed needs a number. Reset to 50%.', 'warning')
       setSpeed('50')
       return
     }
     if (!isNumeric(frameRate)) {
-      await evalScript('showNumericAlert()')
+      notify('Source rate needs a number. Reset to 30 fps.', 'warning')
       setFrameRate('30')
       return
     }
-    const settings = JSON.stringify({
+    const settings = toEvalLiteral({
       speed: parseFloat(speed),
       frameRate: parseFloat(frameRate),
       motionVectors: parseInt(motionVectors),
@@ -85,146 +91,95 @@ export function TwixtorTab() {
       warping: parseInt(warping),
       batch: batchMode,
     })
-    const result = await evalScript(`precomposeAndApplyTwixtor(${settings})`)
+    const result = await evalHostScript(`precomposeAndApplyTwixtor(${settings})`)
     console.log('Twixtor result:', result)
-  }, [speed, frameRate, motionVectors, imagePrep, frameInterp, warping, batchMode, evalScript])
+  }, [speed, frameRate, motionVectors, imagePrep, frameInterp, warping, batchMode, evalHostScript, notify])
 
-  const handleNumericChange = useCallback(
-    async (value: string, setter: (v: string) => void, defaultVal: string) => {
-      if (value !== '' && !isNumeric(value)) {
-        await evalScript('showNumericAlert()')
-        setter(defaultVal)
-        return
-      }
-      setter(value)
-    },
-    [evalScript],
-  )
+
+  const status = !twixtorInfo
+    ? { icon: 'progress_activity', text: 'Detecting Twixtor…', alert: false, loading: true }
+    : !twixtorInfo.installed
+      ? { icon: 'error', text: 'Twixtor not found', alert: true, loading: false }
+      : !twixtorInfo.compatible
+        ? { icon: 'warning', text: `${twixtorInfo.name} — update to v5+ for compatibility`, alert: true, loading: false }
+        : { icon: 'check_circle', text: `${twixtorInfo.name} — compatible`, alert: false, loading: false }
 
   return (
-    <div className={styles.tab} id="twixtor">
-      {/* Speed */}
-      <div className={styles.section} title="Playback speed percentage for the retimed clip">
-        <h3 className={styles.sectionTitle}>Speed</h3>
-        <div className={styles.inputWrapper}>
-          <TextField
+    <div className={styles.tab}>
+      <Section title="Timing">
+        <div className={styles.valueRow}>
+          <ValueField
+            id="speedInput"
+            label="Speed"
             value={speed}
             onChange={(v) => handleNumericChange(v, setSpeed, '50')}
-            aria-label="Speed percentage"
-          >
-            <Input id="speedInput" />
-          </TextField>
-          <span className={`material-symbols-outlined ${styles.inputSymbol}`}>percent</span>
-        </div>
-      </div>
-
-      {/* Frame Rate */}
-      <div className={styles.section} title="Frame rate of the original source footage">
-        <h3 className={styles.sectionTitle}>Input: Frame Rate</h3>
-        <div className={styles.inputWrapper}>
-          <TextField
+            unit="%"
+          />
+          <ValueField
+            id="fpsInput"
+            label="Source rate"
             value={frameRate}
             onChange={(v) => handleNumericChange(v, setFrameRate, '30')}
-            aria-label="Input frame rate"
-          >
-            <Input id="fpsInput" />
-          </TextField>
-          <span className={`material-symbols-outlined ${styles.inputSymbol}`}>slow_motion_video</span>
+            unit="fps"
+          />
         </div>
-      </div>
+      </Section>
 
-      {/* Dropdowns */}
-      <div className={styles.section} title="Quality of motion vector calculation — higher is slower but more accurate">
-        <h3 className={styles.sectionTitle}>Motion Vectors</h3>
-        <Dropdown
-          options={MOTION_VECTORS_OPTIONS}
-          value={motionVectors}
-          placeholder="Select..."
-          onChange={setMotionVectors}
-          aria-label="Motion Vectors quality"
+      <Section title="Quality">
+        <div className={styles.settings}>
+          <Dropdown
+            label="Motion vectors"
+            inlineLabel
+            options={MOTION_VECTORS_OPTIONS}
+            value={motionVectors}
+            placeholder="Select…"
+            onChange={setMotionVectors}
+          />
+          <Dropdown
+            label="Image prep"
+            inlineLabel
+            options={IMAGE_PREP_OPTIONS}
+            value={imagePrep}
+            placeholder="Select…"
+            onChange={setImagePrep}
+          />
+          <Dropdown
+            label="Frame interp"
+            inlineLabel
+            options={FRAME_INTERP_OPTIONS}
+            value={frameInterp}
+            placeholder="Select…"
+            onChange={setFrameInterp}
+          />
+          <Dropdown
+            label="Warping"
+            inlineLabel
+            options={WARPING_OPTIONS}
+            value={warping}
+            placeholder="Select…"
+            onChange={setWarping}
+          />
+        </div>
+      </Section>
+
+      <div className={styles.apply}>
+        <p className={styles.applyNote}>Precomposes the selection first.</p>
+        <Toggle
+          label="Apply to all selected layers"
+          isSelected={batchMode}
+          onChange={setBatchMode}
         />
-      </div>
+        <Button variant="key" block onPress={handleApplyTwixtor}>
+          Apply Twixtor
+        </Button>
 
-      <div className={styles.section} title="Preprocessing applied to improve motion estimation">
-        <h3 className={styles.sectionTitle}>Image Prep</h3>
-        <Dropdown
-          options={IMAGE_PREP_OPTIONS}
-          value={imagePrep}
-          placeholder="Select..."
-          onChange={setImagePrep}
-          aria-label="Image Prep mode"
-        />
-      </div>
-
-      <div className={styles.section} title="Method used to interpolate between existing frames">
-        <h3 className={styles.sectionTitle}>Frame Interp</h3>
-        <Dropdown
-          options={FRAME_INTERP_OPTIONS}
-          value={frameInterp}
-          placeholder="Select..."
-          onChange={setFrameInterp}
-          aria-label="Frame Interpolation method"
-        />
-      </div>
-
-      <div className={styles.section} title="Warping technique for generating new frames">
-        <h3 className={styles.sectionTitle}>Warping</h3>
-        <Dropdown
-          options={WARPING_OPTIONS}
-          value={warping}
-          placeholder="Select..."
-          onChange={setWarping}
-          aria-label="Warping method"
-        />
-      </div>
-
-      {/* Apply Button */}
-      <div className={styles.applySection}>
-        <span title="Apply Twixtor to all selected layers instead of just the first one">
-          <Checkbox
-            className={styles.checkbox}
-            isSelected={batchMode}
-            onChange={setBatchMode}
-          >
-            <div className={styles.checkboxBox} />
-            Apply to all selected layers
-          </Checkbox>
-        </span>
-        <span title="Precompose selected layers and apply Twixtor with current settings">
-          <Button className="primary-btn" onPress={handleApplyTwixtor} aria-label="Precompose selected layers and apply Twixtor with current settings">
-            Apply Twixtor
-          </Button>
-        </span>
-      </div>
-
-      {/* Plugin Info */}
-      <div className={`${styles.infoBar} ${
-        twixtorInfo
-          ? twixtorInfo.installed
-            ? twixtorInfo.compatible
-              ? styles.infoInstalled
-              : styles.infoWarning
-            : styles.infoMissing
-          : styles.infoLoading
-      }`}>
-        <span className="material-symbols-outlined">
-          {twixtorInfo
-            ? twixtorInfo.installed
-              ? twixtorInfo.compatible ? 'check_circle' : 'warning'
-              : 'error'
-            : 'progress_activity'
-          }
-        </span>
-        <span className={styles.infoText}>
-          {!twixtorInfo
-            ? 'Detecting Twixtor...'
-            : twixtorInfo.installed
-              ? twixtorInfo.compatible
-                ? `${twixtorInfo.name} — Compatible`
-                : `${twixtorInfo.name} — Update to v5+ for compatibility`
-              : 'Twixtor not found'
-          }
-        </span>
+        <div
+          className={`${styles.status}${status.alert ? ` ${styles.statusAlert}` : ''}${status.loading ? ` ${styles.statusLoading}` : ''}`}
+          role="status"
+        >
+          <Icon name={status.icon} size={17} className={styles.statusIcon} />
+          <span className={styles.statusText}>{status.text}</span>
+        </div>
       </div>
     </div>
   )

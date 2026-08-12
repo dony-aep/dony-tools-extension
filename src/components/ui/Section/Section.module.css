@@ -1,0 +1,29 @@
+/* ============================================================
+   Section — one plate on the bench.
+   Every tab is a stack of these, so spacing lives here and
+   nowhere else.
+   ============================================================ */
+
+.section + .section {
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
+}
+
+.title {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink-lo);
+}
+
+.description {
+  margin-top: var(--s-1);
+  font-size: var(--t-micro);
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.body {
+  margin-top: var(--s-2);
+}

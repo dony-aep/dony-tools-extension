@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-08-11
+
+A rebuild around two goals: the panel should never interrupt After Effects, and it
+should read as part of it rather than as an app running inside it. Nearly
+everything below follows from one or the other.
+
+### Breaking
+
+- **Minimum version is now After Effects 2022 (22.0).** The 3.x manifest claimed CC 2018, but the panel already relied on browser features no runtime that old provides. The declared floor now matches what the code actually needs.
+- **Bundle id is now `com.donyaep.DonyTools`.** After Effects treats this as a new extension: delete the old `com.dony.tools` folder from the CEP extensions directory and restart After Effects once. Saved presets survive the change.
+
+### Nothing the panel does can block After Effects
+
+- Every message that used to go through the host's `alert()` and `confirm()` is shown in the panel instead. A modal raised from the scripting engine holds After Effects hostage until someone dismisses it.
+- Anything the user types — preset names, output module templates, folder names — is escaped before it reaches ExtendScript. A single quote used to produce a malformed script, and After Effects answers that with exactly the kind of blocking dialog above.
+- Undo groups close exactly once, even when something above them throws; one host function had six ends for two begins. Host failures are reported now, instead of leaving buttons that silently do nothing.
+
+### It reads as part of After Effects
+
+- The panel takes its greys from the host's own theme and follows the brightness slider live, instead of painting a fixed black. Every level is solved for a contrast ratio against the surface it sits on rather than picked by eye — and the suite now proves the ramp holds for any grey the host could report, not just the four it does.
+- Strictly monochrome: state reads through icon, weight and luminance, never hue. The exception is selection, which adopts the host's own highlight colour, so a selection here matches every other selection in the app.
+- Controls are flat — the fill identifies them, not an outline. This is a deliberate departure from WCAG 1.4.11, which asks 3:1 of a control boundary: unreachable for a filled control on a near-black panel without turning the whole UI mid-grey. `tokens.css` records the trade-off and the two values that restore the outlined look.
+
+### Navigation shaped for a docked panel
+
+- A rail of tools replaces the home screen. Everything sits one click from everything else; the hub cost two clicks to reach a tool and a third to leave it, which is the wrong shape for a panel used in short bursts beside the comp.
+- The layout answers the panel's width: compact below 300px, labels beside their controls at 380px, the rail opening out to name its tools at 480px. After Effects ignores the manifest MinSize once a panel is docked, so the real range is whatever the user drags it to.
+
+### Foundations
+
+- A token layer and shared primitives — `Button`, `Icon`, `Section`, `Toggle`, `ValueField`, `Dropdown` — replace styles that had been copy-pasted across five tabs.
+- Fonts and icons ship with the panel. Opened without a network connection, 3.x fell back to a system font and drew every icon as its literal ligature name.
+- Logic that needs no screen — preset matching, setup conversions, escaping, the colour ramp — moved to `src/lib` under 84 tests.
+- CEP baseline modernised: CSInterface v11, CSXS 11 manifest, `chrome88` build target.
+
+### Fixed
+
+- Text sat below WCAG AA throughout: section titles and captions measured 2.14:1 where 4.5:1 is required. Ink clears 4.5:1 wherever it carries text, and the suite fails if that stops being true.
+- The keyboard focus indicator was a 1px outline at 40% opacity. It is a 2px ring now, on every control, and text fields carry it inside their own frame instead of floating it outside.
+- The layout was calibrated against a 350px panel; docked panels are commonly 270px or narrower, where paired fields collapsed and option text ran past the panel edge.
+- The host reused its namespace across loads, so functions removed in a newer version stayed callable until After Effects was restarted.
+- The 4:3 quick setup claimed 1440×1080; it creates 1600×1080.
+- Animations respect `prefers-reduced-motion`.
+
 ## [3.0.0] - 2026-02-14
 
 ### Added
@@ -118,11 +162,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Render queue optimization with output module selection and auto render.
 - Project setup utilities with preset and custom configurations.
 
-[Unreleased]: https://github.com/dony/dony-tools/compare/v3.0.0...HEAD
-[3.0.0]: https://github.com/dony/dony-tools/compare/v2.0.1...v3.0.0
-[2.0.1]: https://github.com/dony/dony-tools/compare/v2.0.0...v2.0.1
-[2.0.0]: https://github.com/dony/dony-tools/compare/v1.2.0...v2.0.0
-[1.2.0]: https://github.com/dony/dony-tools/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/dony/dony-tools/compare/v1.0.1...v1.1.0
-[1.0.1]: https://github.com/dony/dony-tools/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/dony/dony-tools/releases/tag/v1.0.0
+[Unreleased]: https://github.com/dony-aep/dony-tools-extension/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/dony-aep/dony-tools-extension/compare/v3.0.0...v4.0.0
+[3.0.0]: https://github.com/dony-aep/dony-tools-extension/compare/v2.0.1...v3.0.0
+[2.0.1]: https://github.com/dony-aep/dony-tools-extension/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/dony-aep/dony-tools-extension/compare/v1.2.0...v2.0.0
+[1.2.0]: https://github.com/dony-aep/dony-tools-extension/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/dony-aep/dony-tools-extension/compare/v1.0.1...v1.1.0
+[1.0.1]: https://github.com/dony-aep/dony-tools-extension/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/dony-aep/dony-tools-extension/releases/tag/v1.0.0

@@ -1,0 +1,88 @@
+/* ============================================================
+   ValueField — the panel's signature control.
+
+   The number is what the artist reads at a glance while their eyes
+   are on the composition, so the value is set large and tabular and
+   the label shrinks to an eyebrow inside the field. Units are pinned
+   right so a column of fields aligns on both edges.
+
+      ┌────────────────────────────┐
+      │ SPEED                      │
+      │ 50                       % │
+      └────────────────────────────┘
+   ============================================================ */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 5px var(--s-2) 6px;
+  background: var(--control);
+  border: 1px solid var(--control-edge);
+  border-radius: var(--r-1);
+  cursor: text;
+  transition: border-color var(--dur-1) var(--ease),
+              background-color var(--dur-1) var(--ease);
+}
+
+.field[data-hovered] {
+  background: var(--control-hover);
+  border-color: var(--control-edge-hover);
+}
+
+.field[data-focus-within] {
+  border-color: var(--ink-hi);
+  outline: var(--focus-ring);
+  outline-offset: -1px;
+}
+
+.label {
+  font-size: var(--t-eyebrow);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink-lo);
+  cursor: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink-hi);
+  font-size: var(--t-value);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+/* The container owns the focus ring — suppress the global one on the input. */
+.input:focus,
+.input[data-focus-visible] {
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--ink-dim);
+}
+
+.unit {
+  flex-shrink: 0;
+  font-size: var(--t-micro);
+  font-weight: 500;
+  color: var(--ink-lo);
+  letter-spacing: 0.02em;
+}

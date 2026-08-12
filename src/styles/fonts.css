@@ -1,0 +1,26 @@
+/* Local fonts — bundled offline (no Google Fonts CDN). CEP panels may run without network. */
+
+/* Google Sans (variable, latin subset covers 400–700 + Western/Spanish accents) */
+@font-face {
+  font-family: 'Google Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./fonts/google-sans.woff2') format('woff2');
+}
+
+/* Material Symbols Outlined — static instance (wght 300, FILL 0, GRAD 0, opsz 24)
+   subset to the 27 icons used in the UI:
+     add, anchor, build, check, check_circle, close, east, error, expand_more,
+     filter_center_focus, folder_open, info, movie, north, north_east, north_west,
+     open_in_new, progress_activity, refresh, search, south, south_east, south_west,
+     speed, upgrade, warning, west
+   Regenerate when the icon set changes: `python scripts/subset-icons.py`
+   (source glyphs come from the `material-symbols` devDependency). */
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url('./fonts/material-symbols-outlined.woff2') format('woff2');
+}

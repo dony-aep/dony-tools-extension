@@ -1,175 +1,221 @@
 .select {
-  position: relative;
   display: flex;
   flex-direction: column;
+  gap: var(--s-1);
   flex: 1;
+  min-width: 0;
 }
 
-/* ── Trigger Button ── */
-.trigger {
-  width: 100%;
-  padding: 9px 14px;
-  padding-right: 38px;
-  border-radius: var(--radius-sm);
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 400;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  text-align: left;
-  position: relative;
-  transition: background-color var(--duration) var(--ease),
-              border-color var(--duration) var(--ease),
-              box-shadow var(--duration) var(--ease);
+.label {
+  font-size: var(--t-micro);
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--ink-lo);
+  cursor: default;
 }
 
-.trigger:hover,
-.trigger[data-hovered] {
-  background-color: var(--bg-hover);
-  border-color: var(--border-hover);
+/* `inlineLabel` is a request, not a guarantee: below the roomy step a side
+   label leaves too little room for option text like "Motion Weighted Blend",
+   so the row stays stacked. The threshold is the panel's roomy step (380px),
+   which is where the rail still leaves ≈320px of content. */
+@media (min-width: 380px) {
+  .inline {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--s-3);
+  }
+
+  .inline .label {
+    flex: 0 0 84px;
+  }
 }
 
-.trigger[data-focused],
-.trigger[data-focus-visible] {
+/* react-aria marks the whole Select as focus-visible; the ring belongs on the
+   trigger, not around the label as well. */
+.select[data-focus-visible] {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-muted);
 }
 
-.trigger[data-pressed] {
-  background-color: var(--bg-active);
+/* ── Trigger ── */
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  width: 100%;
+  height: var(--control-h);
+  padding: 0 var(--s-2) 0 var(--s-3);
+  background: var(--control);
+  border: 1px solid var(--control-edge);
+  border-radius: var(--r-1);
+  color: var(--ink-hi);
+  font-size: var(--t-label);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease),
+              border-color var(--dur-1) var(--ease);
 }
 
-.triggerIcon {
-  position: absolute;
-  right: 11px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: var(--text-muted);
-  font-size: 22px;
+.trigger[data-hovered] {
+  background: var(--control-hover);
+  border-color: var(--control-edge-hover);
+}
+
+.trigger[data-pressed],
+.trigger[data-open] {
+  background: var(--control-press);
+  border-color: var(--control-edge-hover);
+}
+
+.trigger[data-focus-visible] {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .triggerValue {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding-right: 8px;
+}
+
+.triggerIcon {
+  flex-shrink: 0;
+  color: var(--ink-lo);
+  transition: transform var(--dur-2) var(--ease);
+}
+
+.trigger[data-open] .triggerIcon {
+  transform: rotate(180deg);
 }
 
 .placeholder {
-  color: var(--text-muted);
+  color: var(--ink-lo);
 }
 
-/* ── Popover ── */
+/* ── Popover ──
+   Carries the trigger's own surface rather than a darker one: with the border
+   gone, --control is the only level that still reads as lifted off the panel,
+   and the list looks like the field it dropped out of. */
 .popover {
-  width: var(--trigger-width);
-  background-color: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-lg);
-  z-index: 110;
-  max-height: 260px;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  animation: popoverEnter 0.2s var(--ease);
-}
-
-@keyframes popoverEnter {
-  from {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  width: var(--trigger-width);
+  max-height: 264px;
+  overflow: hidden;
+  background: var(--control);
+  border: 1px solid var(--control-edge);
+  border-radius: var(--r-2);
+  box-shadow: var(--drop);
+  z-index: 110;
 }
 
 .popover[data-entering] {
-  animation: popoverEnter 0.2s var(--ease);
+  animation: dt-rise var(--dur-2) var(--ease);
 }
 
 .popover[data-exiting] {
-  animation: popoverEnter 0.15s var(--ease) reverse;
+  animation: dt-fade var(--dur-1) var(--ease) reverse;
 }
 
-/* ── Search ── */
+/* ── Search ──
+   A recessed field inside the popover, not a strip with a rule under it: the
+   drop to --ground is what separates it, and it now looks like the input it
+   is. That also lets the focus ring sit *inside* the field. It used to be the
+   panel's standard 2px ring offset 2px outward around a transparent input,
+   which drew a bright white rectangle floating in the popover — and because
+   the field takes focus the moment the list opens, that fired on every single
+   click of a dropdown. */
 .search {
   display: flex;
   align-items: center;
-  padding: 9px 14px;
-  border-bottom: 1px solid var(--border);
-  background-color: var(--bg-elevated);
+  gap: var(--s-2);
   flex-shrink: 0;
+  margin: var(--s-1) var(--s-1) 0;
+  padding: 0 var(--s-2);
+  height: 30px;
+  background: var(--ground);
+  border-radius: var(--r-1);
+}
+
+.search:focus-within {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
 }
 
 .searchIcon {
-  color: var(--text-muted);
-  font-size: 19px;
-  margin-right: 4px;
   flex-shrink: 0;
+  color: var(--ink-lo);
 }
 
 .searchInput {
   flex: 1;
-  background-color: transparent;
+  min-width: 0;
+  padding: 0;
   border: none;
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 400;
-  padding: 5px 9px;
-  width: 100%;
+  background: transparent;
+  color: var(--ink-hi);
+  font-size: var(--t-label);
+}
+
+/* The field above owns the ring. A bare `.searchInput { outline: none }` does
+   not win here: it ties the global `:focus-visible` on specificity and loses
+   on source order, so the input kept drawing its own 2px ring 2px outside
+   itself and the two stacked into a doubled white box. */
+.searchInput:focus,
+.searchInput:focus-visible {
   outline: none;
 }
 
-/* ── ListBox ── */
+.searchInput::placeholder {
+  color: var(--ink-lo);
+}
+
+/* ── Options ──
+   Same specificity trap as the search field: the focus ring belongs on the
+   individual option, never around the whole scrolling list. */
 .listbox {
   overflow-y: auto;
-  outline: none;
-  padding: 5px 0;
+  padding: var(--s-1) 0;
 }
 
-/* ── Option ── */
+.listbox:focus,
+.listbox:focus-visible {
+  outline: none;
+}
+
 .option {
-  padding: 9px 14px;
-  font-size: 13.5px;
-  font-weight: 400;
-  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--t-label);
+  line-height: 1.35;
+  color: var(--ink);
   cursor: pointer;
   outline: none;
-  transition: background-color var(--duration) var(--ease),
-              color var(--duration) var(--ease);
+  transition: background-color var(--dur-1) var(--ease),
+              color var(--dur-1) var(--ease);
 }
 
 .option[data-hovered],
 .option[data-focused] {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
+  background: var(--veil);
+  color: var(--ink-hi);
 }
 
+/* Weight and ink carry the selected row on their own — no bar, no fill, so
+   the list keeps one clean left edge. Still not colour alone: the 600 weight
+   is what survives if the host recolours everything. */
 .option[data-selected] {
-  background-color: var(--accent-muted);
-  color: var(--text-primary);
+  color: var(--ink-hi);
+  font-weight: 600;
 }
 
-.option[data-focused][data-selected] {
-  background-color: rgba(255, 255, 255, 0.10);
-  color: var(--text-primary);
-}
-
-/* ── Empty state ── */
 .noResults {
-  padding: 14px;
+  padding: var(--s-4) var(--s-3);
   text-align: center;
-  color: var(--text-muted);
-  font-size: 13px;
-  font-style: italic;
+  font-size: var(--t-micro);
+  color: var(--ink-lo);
 }

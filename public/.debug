@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ExtensionList>
-    <Extension Id="com.dony.tools">
+    <Extension Id="com.donyaep.DonyTools.panel">
         <HostList>
-            <Host Name="AEFT" Port="8088"/>
+            <Host Name="AEFT" Port="8089"/>
         </HostList>
     </Extension>
-</ExtensionList> 
+</ExtensionList>

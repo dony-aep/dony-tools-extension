@@ -1,133 +1,105 @@
 import { useState, useCallback } from 'react'
-import { Button, Input, TextField, Label } from 'react-aria-components'
+import { Button as AriaButton } from 'react-aria-components'
 import { useApp } from '../../../context/AppContext'
+import { isNumeric, useNumericInput } from '../../../hooks/useNumericInput'
+import { Button } from '../../ui/Button'
+import { Icon } from '../../ui/Icon'
+import { Section } from '../../ui/Section'
+import { ValueField } from '../../ui/ValueField'
 import styles from './AnchorPointTab.module.css'
 
-// Map anchor positions to Material Symbols icon names
-const ANCHOR_ICONS: Record<string, string> = {
-  topLeft: 'north_west',
-  top: 'north',
-  topRight: 'north_east',
-  left: 'west',
-  center: 'filter_center_focus',
-  right: 'east',
-  bottomLeft: 'south_west',
-  bottom: 'south',
-  bottomRight: 'south_east',
-}
-
-type AnchorPosition = keyof typeof ANCHOR_ICONS
-
-const ANCHOR_POSITIONS: AnchorPosition[] = [
-  'topLeft', 'top', 'topRight',
-  'left', 'center', 'right',
-  'bottomLeft', 'bottom', 'bottomRight',
+// Each cell: the Material Symbols arrow that points at it, and the name used
+// in its accessible label.
+const ANCHOR_CELLS: { position: string; icon: string; label: string }[] = [
+  { position: 'topLeft', icon: 'north_west', label: 'top left' },
+  { position: 'top', icon: 'north', label: 'top' },
+  { position: 'topRight', icon: 'north_east', label: 'top right' },
+  { position: 'left', icon: 'west', label: 'left' },
+  { position: 'center', icon: 'filter_center_focus', label: 'center' },
+  { position: 'right', icon: 'east', label: 'right' },
+  { position: 'bottomLeft', icon: 'south_west', label: 'bottom left' },
+  { position: 'bottom', icon: 'south', label: 'bottom' },
+  { position: 'bottomRight', icon: 'south_east', label: 'bottom right' },
 ]
 
 export function AnchorPointTab() {
   const [offsetX, setOffsetX] = useState('0')
   const [offsetY, setOffsetY] = useState('0')
-  const { evalScript } = useApp()
+  const { evalHostScript, notify } = useApp()
 
-  const isNumeric = (value: string) => !isNaN(parseFloat(value)) && isFinite(Number(value))
+  const handleNumericInput = useNumericInput()
 
   const handleAnchorClick = useCallback(
-    async (position: AnchorPosition) => {
+    async (position: string) => {
       if (!isNumeric(offsetX) || !isNumeric(offsetY)) {
-        await evalScript('showOffsetAlert()')
+        notify('Offsets need numbers. Both reset to 0.', 'warning')
         setOffsetX('0')
         setOffsetY('0')
         return
       }
 
-      const validationResult = await evalScript(
+      const validationResult = await evalHostScript(
         `validateOffsetValues(${offsetX}, ${offsetY})`,
       )
       if (validationResult === 'valid') {
-        const result = await evalScript(
+        const result = await evalHostScript(
           `moveAnchorPoint("${position}", ${offsetX}, ${offsetY})`,
         )
         console.log('Move anchor result:', result)
       }
     },
-    [offsetX, offsetY, evalScript],
+    [offsetX, offsetY, evalHostScript, notify],
   )
 
   const handleResetAnchor = useCallback(async () => {
-    const result = await evalScript('resetAnchorPoint()')
+    const result = await evalHostScript('resetAnchorPoint()')
     console.log('Reset anchor result:', result)
-  }, [evalScript])
+  }, [evalHostScript])
 
   const handleResetOffset = useCallback(() => {
     setOffsetX('0')
     setOffsetY('0')
   }, [])
 
-  const handleNumericInput = useCallback(
-    async (value: string, setter: (v: string) => void, defaultVal: string) => {
-      if (value !== '' && !isNumeric(value)) {
-        await evalScript('showNumericAlert()')
-        setter(defaultVal)
-        return
-      }
-      setter(value)
-    },
-    [evalScript],
-  )
 
   return (
-    <div className={styles.tab} id="anchor">
-      <div className={styles.panel}>
-        <h3 className={styles.panelTitle}>Move Anchor Point</h3>
-        <div className={styles.grid}>
-          {ANCHOR_POSITIONS.map((position) => (
-            <Button
-              key={position}
-              className={styles.anchorBtn}
-              onPress={() => handleAnchorClick(position)}
-              aria-label={`Move anchor to ${position.replace(/([A-Z])/g, ' $1').toLowerCase()}`}
+    <div className={styles.tab}>
+      <Section title="Move anchor point">
+        <div className={styles.pad}>
+          {ANCHOR_CELLS.map((cell) => (
+            <AriaButton
+              key={cell.position}
+              className={styles.target}
+              onPress={() => handleAnchorClick(cell.position)}
+              aria-label={`Move anchor point to ${cell.label}`}
             >
-              <span className={`material-symbols-outlined ${styles.anchorIcon}`}>{ANCHOR_ICONS[position]}</span>
-            </Button>
+              <Icon name={cell.icon} size={20} />
+            </AriaButton>
           ))}
         </div>
+      </Section>
 
-        <div className={styles.offsetControls}>
-          <div className={styles.offsetGroup} title="Horizontal offset in pixels from the anchor position">
-            <TextField
-              value={offsetX}
-              onChange={(value) => handleNumericInput(value, setOffsetX, '0')}
-              aria-label="Horizontal offset in pixels"
-            >
-              <Label className={styles.offsetLabel}>Offset X:</Label>
-              <Input />
-            </TextField>
-          </div>
-          <div className={styles.offsetGroup} title="Vertical offset in pixels from the anchor position">
-            <TextField
-              value={offsetY}
-              onChange={(value) => handleNumericInput(value, setOffsetY, '0')}
-              aria-label="Vertical offset in pixels"
-            >
-              <Label className={styles.offsetLabel}>Offset Y:</Label>
-              <Input />
-            </TextField>
-          </div>
+      <Section title="Offset" description="Applied when you pick a position above.">
+        <div className={styles.offsets}>
+          <ValueField
+            label="X"
+            value={offsetX}
+            onChange={(value) => handleNumericInput(value, setOffsetX, '0')}
+            unit="px"
+          />
+          <ValueField
+            label="Y"
+            value={offsetY}
+            onChange={(value) => handleNumericInput(value, setOffsetY, '0')}
+            unit="px"
+          />
         </div>
 
-        <div className={styles.controls}>
-          <span title="Reset X and Y offset values to 0">
-            <Button onPress={handleResetOffset}>
-              Reset Offset
-            </Button>
-          </span>
-          <span title="Reset anchor point to the layer's center">
-            <Button onPress={handleResetAnchor}>
-              Reset Anchor
-            </Button>
-          </span>
+        <div className={styles.actions}>
+          <Button onPress={handleResetOffset}>Reset offset</Button>
+          <Button onPress={handleResetAnchor}>Reset anchor</Button>
         </div>
-      </div>
+      </Section>
     </div>
   )
 }

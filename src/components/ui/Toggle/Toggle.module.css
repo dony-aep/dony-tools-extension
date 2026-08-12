@@ -1,0 +1,61 @@
+/* ============================================================
+   Toggle — checkbox row. The whole row is the hit target.
+   ============================================================ */
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--control-h);
+  padding: 0 var(--s-1);
+  margin: 0 calc(var(--s-1) * -1);
+  border-radius: var(--r-1);
+  font-size: var(--t-label);
+  color: var(--ink);
+  cursor: pointer;
+  transition: color var(--dur-1) var(--ease);
+}
+
+.toggle[data-hovered] {
+  color: var(--ink-hi);
+}
+
+.box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--control-edge);
+  border-radius: 4px;
+  background: var(--control);
+  transition: background-color var(--dur-1) var(--ease),
+              border-color var(--dur-1) var(--ease);
+}
+
+/* Unchecked, the box is a faint 16px square, so hover lifts its fill rather
+   than only its edge — otherwise flat leaves it with no hover at all. */
+.toggle[data-hovered] .box {
+  background: var(--control-hover);
+  border-color: var(--control-edge-hover);
+}
+
+.toggle[data-selected] .box {
+  background: var(--select);
+  border-color: var(--select);
+}
+
+.check {
+  opacity: 0;
+  stroke: var(--select-ink, var(--key-ink));
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  transition: opacity var(--dur-1) var(--ease);
+}
+
+.toggle[data-selected] .check {
+  opacity: 1;
+}

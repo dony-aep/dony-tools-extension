@@ -353,6 +353,37 @@ if (typeof JSON !== 'object') {
     }
 }());
 
+// Rebuilt from scratch on every load. Reusing the existing object kept
+// exports that a newer version had removed, so refreshing the panel could
+// still reach stale code until After Effects was restarted.
+var donyToolsNamespace = ($.global.com_dony_tools = {});
+
+(function (exports) {
+
+// =========================================================================
+// Message buffer
+//
+// The panel drains this after every host call and shows the entries as
+// in-panel toasts. Replaces alert(), which froze After Effects until the
+// user dismissed it -- a modal dialog for "please select a layer" stops the
+// whole application.
+//
+// ES3: no Array.forEach / JSON shorthand. json2.js above provides JSON.
+// =========================================================================
+var __messages = [];
+
+function report(kind, message) {
+    __messages[__messages.length] = { kind: String(kind), message: String(message) };
+}
+
+/** Returns the queued messages as JSON and empties the queue. */
+function takeMessages() {
+    var out = JSON.stringify(__messages);
+    __messages = [];
+    return out;
+}
+
+
 // Función para obtener la ruta del script
 function getScriptPath() {
     try {
@@ -363,7 +394,7 @@ function getScriptPath() {
         }
         return userFolder.fsName;
     } catch (e) {
-        alert("Error getting script path: " + e.toString());
+        report("error", "Error getting script path: " + e.toString());
         return null;
     }
 }
@@ -378,21 +409,8 @@ function parseJSON(str) {
     }
 }
 
-// Funciones para mostrar alertas
-function showNumericAlert() {
-    alert("Please enter a valid number");
-    return "alerted";
-}
 
-function showSpeedAlert() {
-    alert("Please enter a valid number for speed");
-    return "alerted";
-}
 
-function showOffsetAlert() {
-    alert("Please enter valid numbers for offset values");
-    return "alerted";
-}
 
 // Función para validar los valores de offset
 function validateOffsetValues(offsetX, offsetY) {
@@ -401,7 +419,7 @@ function validateOffsetValues(offsetX, offsetY) {
     offsetY = parseFloat(offsetY);
     
     if (isNaN(offsetX) || isNaN(offsetY)) {
-        alert("Please enter valid numbers for offset values");
+        report("warning", "Please enter valid numbers for offset values");
         return "invalid_offset";
     }
     
@@ -484,10 +502,11 @@ function getTwixtorInfo() {
 
 // Función para precomponer y aplicar Twixtor Pro
 function precomposeAndApplyTwixtor(settingsObj) {
+    var undoStarted = false;
     // settingsObj: { speed, frameRate, motionVectors, imagePrep, frameInterp, warping, batch }
     var targetSpeed = parseFloat(settingsObj.speed);
     if (isNaN(targetSpeed)) {
-        alert("Please enter a valid number for speed");
+        report("warning", "Please enter a valid number for speed");
         return "invalid_speed";
     }
 
@@ -510,6 +529,7 @@ function precomposeAndApplyTwixtor(settingsObj) {
             var selectedLayerIndex = selectedLayer.index;
             
             app.beginUndoGroup("Precompose and Apply Twixtor Pro");
+            undoStarted = true;
 
             try {
                 activeItem.layers.precompose(
@@ -541,22 +561,26 @@ function precomposeAndApplyTwixtor(settingsObj) {
                             true
                         );
                         
-                        app.endUndoGroup();
                         return "success";
                     } catch (settingsError) {
-                        app.endUndoGroup();
-                        alert("Error applying settings: " + settingsError.toString());
+                        report("error", "Error applying settings: " + settingsError.toString());
                         return "error";
                     }
                 } else {
-                    app.endUndoGroup();
-                    alert("Failed to apply Twixtor Pro. Make sure the effect is installed.");
+                    report("error", "Failed to apply Twixtor Pro. Make sure the effect is installed.");
                     return "error";
                 }
             } catch (e) {
-                app.endUndoGroup();
-                alert("Error: " + e.toString());
+                report("error", "Error: " + e.toString());
                 return "error";
+            } finally {
+                // One end per begin, guaranteed even if a handler above throws.
+                if (undoStarted) {
+                    try {
+                        app.endUndoGroup();
+                    } catch (endErr) {}
+                }
+                undoStarted = false;
             }
         } else {
             // Batch mode — apply to all selected layers
@@ -568,6 +592,7 @@ function precomposeAndApplyTwixtor(settingsObj) {
             layerIndices.sort(function(a, b) { return b.index - a.index; });
 
             app.beginUndoGroup("Batch Precompose and Apply Twixtor Pro");
+            undoStarted = true;
 
             var successCount = 0;
             var errorCount = 0;
@@ -612,32 +637,38 @@ function precomposeAndApplyTwixtor(settingsObj) {
                     }
                 }
 
-                app.endUndoGroup();
-
                 if (errorCount > 0) {
-                    alert("Batch Twixtor: " + successCount + " layers processed, " + errorCount + " failed.");
+                    report("warning", "Batch Twixtor: " + successCount + " layers processed, " + errorCount + " failed.");
                 }
                 return successCount > 0 ? "success" : "error";
             } catch (e) {
-                app.endUndoGroup();
-                alert("Error in batch processing: " + e.toString());
+                report("error", "Error in batch processing: " + e.toString());
                 return "error";
+            } finally {
+                // One end per begin, guaranteed even if a handler above throws.
+                if (undoStarted) {
+                    try {
+                        app.endUndoGroup();
+                    } catch (endErr) {}
+                }
+                undoStarted = false;
             }
         }
     } else {
-        alert("Please select a layer in the active composition.");
+        report("warning", "Please select a layer in the active composition.");
         return "error";
     }
 }
 
 // Función para mover el punto de anclaje
 function moveAnchorPoint(position, offsetX, offsetY) {
+    var undoStarted = false;
     // Validar que los valores de offset sean números válidos
     offsetX = parseFloat(offsetX);
     offsetY = parseFloat(offsetY);
     
     if (isNaN(offsetX) || isNaN(offsetY)) {
-        alert("Please enter valid numbers for offset values");
+        report("warning", "Please enter valid numbers for offset values");
         return "invalid_offset";
     }
     
@@ -645,6 +676,7 @@ function moveAnchorPoint(position, offsetX, offsetY) {
 
     if (activeItem && activeItem instanceof CompItem && activeItem.selectedLayers.length > 0) {
         app.beginUndoGroup("Move Anchor Point");
+        undoStarted = true;
 
         try {
             var selectedLayers = activeItem.selectedLayers;
@@ -804,15 +836,20 @@ function moveAnchorPoint(position, offsetX, offsetY) {
                 layer.position.setValue(newPosition);
             }
             
-            app.endUndoGroup();
             return "success";
         } catch (e) {
-            app.endUndoGroup();
-            alert("Error moving anchor point: " + e.toString());
+            report("error", "Error moving anchor point: " + e.toString());
             return "error";
+        } finally {
+            // One end per begin, guaranteed even if a handler above throws.
+            if (undoStarted) {
+                try {
+                    app.endUndoGroup();
+                } catch (endErr) {}
+            }
         }
     } else {
-        alert("Please select at least one layer in the active composition.");
+        report("warning", "Please select at least one layer in the active composition.");
         return "error";
     }
 }
@@ -824,9 +861,11 @@ function degreesToRadians(degrees) {
 
 // Función para resetear el punto de anclaje
 function resetAnchorPoint() {
+    var undoStarted = false;
     var activeItem = app.project.activeItem;
     if (activeItem && activeItem instanceof CompItem && activeItem.selectedLayers.length > 0) {
         app.beginUndoGroup("Reset Anchor Point");
+        undoStarted = true;
         
         try {
             var selectedLayers = activeItem.selectedLayers;
@@ -896,15 +935,20 @@ function resetAnchorPoint() {
                 layer.position.setValue(newPosition);
             }
             
-            app.endUndoGroup();
             return "success";
         } catch (e) {
-            app.endUndoGroup();
-            alert("Error resetting anchor point: " + e.toString());
+            report("error", "Error resetting anchor point: " + e.toString());
             return "error";
+        } finally {
+            // One end per begin, guaranteed even if a handler above throws.
+            if (undoStarted) {
+                try {
+                    app.endUndoGroup();
+                } catch (endErr) {}
+            }
         }
     } else {
-        alert("Please select at least one layer in the active composition.");
+        report("warning", "Please select at least one layer in the active composition.");
         return "error";
     }
 }
@@ -953,7 +997,7 @@ function saveOutputModules(modules) {
             throw new Error("Cannot write to file: " + jsonFile.fsName);
         }
     } catch (e) {
-        alert("Error saving output modules: " + e.toString());
+        report("error", "Error saving output modules: " + e.toString());
         return false;
     }
 }
@@ -979,7 +1023,7 @@ function loadOutputModules() {
         }
         return null;
     } catch (e) {
-        alert("Error loading output modules: " + e.toString());
+        report("error", "Error loading output modules: " + e.toString());
         return null;
     }
 }
@@ -988,12 +1032,16 @@ function loadOutputModules() {
 function getOutputModules() {
     var outputModules = ["Select Output Module..."];
     var activeComp = app.project.activeItem;
+    var undoStarted = false;
+    var tempComp = null;
+    var tempRenderQueueItem = null;
     
     try {
         app.beginUndoGroup("Get Output Modules");
+        undoStarted = true;
         
-        var tempComp = app.project.items.addComp("temp", 100, 100, 1, 1, 30);
-        var tempRenderQueueItem = app.project.renderQueue.items.add(tempComp);
+        tempComp = app.project.items.addComp("temp", 100, 100, 1, 1, 30);
+        tempRenderQueueItem = app.project.renderQueue.items.add(tempComp);
         var templates = tempRenderQueueItem.outputModule(1).templates;
         
         for (var i = 0; i < templates.length; i++) {
@@ -1001,24 +1049,39 @@ function getOutputModules() {
                 outputModules.push(templates[i]);
             }
         }
-        
-        tempRenderQueueItem.remove();
-        tempComp.remove();
-        
-        if (activeComp) {
-            activeComp.openInViewer();
-        }
 
         // Guardar los módulos en el archivo JSON
         saveOutputModules(outputModules);
         
-        app.endUndoGroup();
-        
         return JSON.stringify(outputModules); // Devolver como JSON string
         
     } catch (e) {
-        alert("Error getting output modules: " + e.toString());
+        report("error", "Error getting output modules: " + e.toString());
         return JSON.stringify(["Select Output Module..."]); // Devolver al menos la opción por defecto
+    } finally {
+        if (tempRenderQueueItem) {
+            try {
+                tempRenderQueueItem.remove();
+            } catch (e) {}
+        }
+
+        if (tempComp) {
+            try {
+                tempComp.remove();
+            } catch (e) {}
+        }
+
+        if (activeComp) {
+            try {
+                activeComp.openInViewer();
+            } catch (e) {}
+        }
+
+        if (undoStarted) {
+            try {
+                app.endUndoGroup();
+            } catch (e) {}
+        }
     }
 }
 
@@ -1028,13 +1091,13 @@ function addToRenderQueue(selectedTemplate, autoRender) {
     
     // Verificar si hay una composición activa
     if (!activeItem || !(activeItem instanceof CompItem)) {
-        alert("Please select a composition first.");
+        report("warning", "Please select a composition first.");
         return "no_comp";
     }
 
     // Verificar si se ha seleccionado un módulo de salida válido
     if (selectedTemplate === "Select Output Module...") {
-        alert("Please select an output module from the list.");
+        report("warning", "Please select an output module from the list.");
         return "invalid_module";
     }
 
@@ -1097,7 +1160,7 @@ function addToRenderQueue(selectedTemplate, autoRender) {
             return "cancelled";
         }
     } catch (e) {
-        alert("Error applying output module: " + e.toString());
+        report("error", "Error applying output module: " + e.toString());
         renderQueueItem.remove();
         return "error";
     }
@@ -1116,7 +1179,7 @@ function showSettingsLocation() {
             }
             return "success";
         } catch (e) {
-            alert("Could not open settings location.");
+            report("error", "Could not open settings location.");
             return "error";
         }
     }
@@ -1134,7 +1197,7 @@ function visitWebsite() {
         }
         return "success";
     } catch (e) {
-        alert("Error opening URL: " + e.toString());
+        report("error", "Error opening URL: " + e.toString());
         return "error";
     }
 }
@@ -1142,6 +1205,7 @@ function visitWebsite() {
 // Función para crear setup personalizado
 function createCustomSetup(settingsJSON) {
     var settings;
+    var undoStarted = false;
     
     try {
         // Parse the JSON if it's a string
@@ -1152,6 +1216,7 @@ function createCustomSetup(settingsJSON) {
         }
         
         app.beginUndoGroup("Create Custom Setup");
+        undoStarted = true;
         
         // Calculate total duration in seconds
         var totalSeconds = (settings.hours * 3600) + (settings.minutes * 60) + settings.seconds;
@@ -1213,13 +1278,17 @@ function createCustomSetup(settingsJSON) {
             }
         }
 
-        alert("Custom setup created successfully!");
-        app.endUndoGroup();
+        report("success", "Custom setup created successfully!");
         return "success";
     } catch (e) {
-        app.endUndoGroup();
-        alert("Error creating custom setup: " + e.toString());
+        report("error", "Error creating custom setup: " + e.toString());
         return "error";
+    } finally {
+        if (undoStarted) {
+            try {
+                app.endUndoGroup();
+            } catch (e) {}
+        }
     }
 }
 
@@ -1251,14 +1320,14 @@ function loadPresets() {
             parseJSON(content);
             return content;
         } catch (e) {
-            alert("Invalid JSON in presets file. Creating a new one.");
+            report("error", "Invalid JSON in presets file. Creating a new one.");
             presetsFile.open('w');
             presetsFile.write("{}");
             presetsFile.close();
             return "{}";
         }
     } catch (e) {
-        alert("Error loading presets: " + e.toString());
+        report("error", "Error loading presets: " + e.toString());
         return "{}";
     }
 }
@@ -1289,10 +1358,10 @@ function savePreset(presetName, settings) {
         presetsFile.write(JSON.stringify(presets, null, 2)); // Use 2 spaces for indentation
         presetsFile.close();
         
-        alert("Preset '" + presetName + "' saved successfully!");
+        report("success", "Preset '" + presetName + "' saved successfully!");
         return true;
     } catch (e) {
-        alert("Error saving preset: " + e.toString());
+        report("error", "Error saving preset: " + e.toString());
         return false;
     }
 }
@@ -1321,7 +1390,7 @@ function updatePresetList(dropDown) {
         dropDown.selection = 0;
         
     } catch (e) {
-        alert("Error updating preset list: " + e.toString());
+        report("error", "Error updating preset list: " + e.toString());
     }
 }
 
@@ -1356,7 +1425,7 @@ function loadPresetValues(presetName, panel) {
         panel.savePresetGroup.presetNameInput.text = presetName;
         
     } catch (e) {
-        alert("Error loading preset values: " + e.toString());
+        report("error", "Error loading preset values: " + e.toString());
     }
 }
 
@@ -1385,13 +1454,13 @@ function deletePreset(presetName) {
             presetsFile.write(JSON.stringify(presets, null, 2));
             presetsFile.close();
             
-            alert("Preset '" + presetName + "' deleted successfully!");
+            report("success", "Preset '" + presetName + "' deleted successfully!");
             return true;
         }
         
         return false;
     } catch (e) {
-        alert("Error deleting preset: " + e.toString());
+        report("error", "Error deleting preset: " + e.toString());
         return false;
     }
 }
@@ -1409,7 +1478,7 @@ function showPresetsLocation() {
             }
             return "success";
         } catch (e) {
-            alert("Could not open presets location.");
+            report("error", "Could not open presets location.");
             return "error";
         }
     }
@@ -1418,9 +1487,12 @@ function showPresetsLocation() {
 
 // Nueva función para crear carpetas y composiciones por defecto
 function createDefaultSetup(aspectRatio) {
-    app.beginUndoGroup("Create Default Setup");
+    var undoStarted = false;
     
     try {
+        app.beginUndoGroup("Create Default Setup");
+        undoStarted = true;
+
         // Definir dimensiones según aspect ratio
         var compWidth, compHeight;
         if (aspectRatio === "16:9") {
@@ -1433,7 +1505,7 @@ function createDefaultSetup(aspectRatio) {
             compWidth = 1600;
             compHeight = 1080;
         } else {
-            alert("Aspect ratio not supported.");
+            report("warning", "Aspect ratio not supported.");
             return "invalid_ratio";
         }
 
@@ -1478,22 +1550,43 @@ function createDefaultSetup(aspectRatio) {
             }
         }
 
-        alert("Default setup created with aspect ratio: " + aspectRatio);
+        report("success", "Default setup created with aspect ratio: " + aspectRatio);
         return "success";
     } catch (e) {
-        alert("Error creating default setup: " + e.toString());
+        report("error", "Error creating default setup: " + e.toString());
         return "error";
+    } finally {
+        if (undoStarted) {
+            try {
+                app.endUndoGroup();
+            } catch (e) {}
+        }
     }
-    
-    app.endUndoGroup();
 }
 
-// Función para mostrar alertas de selección de preset
-function showPresetSelectionAlert(action) {
-    if (action === "load") {
-        alert("Please select a preset to load.");
-    } else if (action === "delete") {
-        alert("Please select a preset to delete.");
-    }
-    return "alerted";
-}
+
+exports.getScriptPath = getScriptPath;
+exports.parseJSON = parseJSON;
+exports.validateOffsetValues = validateOffsetValues;
+exports.getTwixtorInfo = getTwixtorInfo;
+exports.precomposeAndApplyTwixtor = precomposeAndApplyTwixtor;
+exports.moveAnchorPoint = moveAnchorPoint;
+exports.degreesToRadians = degreesToRadians;
+exports.resetAnchorPoint = resetAnchorPoint;
+exports.calculateLayersBounds = calculateLayersBounds;
+exports.saveOutputModules = saveOutputModules;
+exports.loadOutputModules = loadOutputModules;
+exports.getOutputModules = getOutputModules;
+exports.addToRenderQueue = addToRenderQueue;
+exports.showSettingsLocation = showSettingsLocation;
+exports.visitWebsite = visitWebsite;
+exports.createCustomSetup = createCustomSetup;
+exports.loadPresets = loadPresets;
+exports.savePreset = savePreset;
+exports.updatePresetList = updatePresetList;
+exports.loadPresetValues = loadPresetValues;
+exports.deletePreset = deletePreset;
+exports.showPresetsLocation = showPresetsLocation;
+exports.createDefaultSetup = createDefaultSetup;
+exports.takeMessages = takeMessages;
+})(donyToolsNamespace);

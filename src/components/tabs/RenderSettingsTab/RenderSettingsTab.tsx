@@ -1,7 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Button, Checkbox } from 'react-aria-components'
 import { useApp } from '../../../context/AppContext'
+import { escapeForEval } from '../../../hooks/useCSInterface'
 import { Dropdown } from '../../ui/Dropdown'
+import { Button } from '../../ui/Button'
+import { Icon } from '../../ui/Icon'
+import { Section } from '../../ui/Section'
+import { Toggle } from '../../ui/Toggle'
 import styles from './RenderSettingsTab.module.css'
 
 export function RenderSettingsTab() {
@@ -9,12 +13,12 @@ export function RenderSettingsTab() {
   const [selectedModule, setSelectedModule] = useState('Select Output Module...')
   const [autoRender, setAutoRender] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const { evalScript } = useApp()
+  const { evalHostScript, notify } = useApp()
 
   // Load output modules on mount
   useEffect(() => {
     const loadModules = async () => {
-      const result = await evalScript('loadOutputModules()')
+      const result = await evalHostScript('loadOutputModules()')
       if (result) {
         try {
           const modules: string[] = JSON.parse(result)
@@ -26,11 +30,11 @@ export function RenderSettingsTab() {
       }
     }
     loadModules()
-  }, [evalScript])
+  }, [evalHostScript])
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true)
-    const result = await evalScript('getOutputModules()')
+    const result = await evalHostScript('getOutputModules()')
     try {
       const modules: string[] = JSON.parse(result)
       setOutputModules(modules)
@@ -39,31 +43,30 @@ export function RenderSettingsTab() {
       console.error('Error parsing output modules:', e)
     }
     setTimeout(() => setIsRefreshing(false), 800)
-  }, [evalScript])
+  }, [evalHostScript])
 
   const handleAddToRenderQueue = useCallback(async () => {
     if (selectedModule === 'Select Output Module...') {
-      await evalScript('alert("Please select an output module first.")')
+      notify('Pick an output module first.', 'warning')
       return
     }
-    const result = await evalScript(
-      `addToRenderQueue("${selectedModule}", ${autoRender})`,
+    const result = await evalHostScript(
+      `addToRenderQueue("${escapeForEval(selectedModule)}", ${autoRender})`,
     )
     console.log('Add to render queue result:', result)
-  }, [selectedModule, autoRender, evalScript])
+  }, [selectedModule, autoRender, evalHostScript, notify])
 
   const handleShowLocation = useCallback(async () => {
-    const result = await evalScript('showSettingsLocation()')
+    const result = await evalHostScript('showSettingsLocation()')
     console.log('Show settings location result:', result)
-  }, [evalScript])
+  }, [evalHostScript])
 
   const moduleOptions = outputModules.map((m) => ({ label: m, value: m }))
 
   return (
-    <div className={styles.tab} id="render">
-      <div className={styles.panel}>
-        <h3 className={styles.panelTitle}>Output Module</h3>
-        <div className={styles.outputGroup}>
+    <div className={styles.tab}>
+      <Section title="Output module">
+        <div className={styles.moduleRow}>
           <Dropdown
             options={moduleOptions}
             value={selectedModule}
@@ -74,53 +77,43 @@ export function RenderSettingsTab() {
             id="outputModule-dropdown"
             aria-label="Output module template"
           />
-          <span title="Refresh output modules list">
-            <Button
-              className="icon-btn"
-              onPress={handleRefresh}
-              aria-label="Refresh the list of available output modules"
-            >
-              <span
-                className={`material-symbols-outlined${isRefreshing ? ` ${styles.rotating}` : ''}`}
-                style={{ fontSize: 18 }}
-              >refresh</span>
-            </Button>
-          </span>
-        </div>
-      </div>
-
-      <div className={styles.panel}>
-        <h3 className={styles.panelTitle}>Render Queue</h3>
-        <div className={styles.controls}>
-          <span title="Start rendering automatically after adding to queue">
-            <Checkbox
-              className={styles.checkbox}
-              isSelected={autoRender}
-              onChange={setAutoRender}
-            >
-              <div className={styles.checkboxBox} />
-              Auto Render
-            </Checkbox>
-          </span>
-          <span title="Add active composition to the render queue with selected output module">
-            <Button
-              className="primary-btn"
-              onPress={handleAddToRenderQueue}
-            >
-              Add to Render Queue
-            </Button>
-          </span>
-        </div>
-      </div>
-
-      <div className={styles.panel}>
-        <h3 className={styles.panelTitle}>Settings</h3>
-        <span title="Open output module settings folder in file explorer">
-          <Button style={{ width: '100%' }} onPress={handleShowLocation}>
-            Show Settings Location
+          <Button
+            variant="default"
+            iconOnly
+            onPress={handleRefresh}
+            aria-label="Refresh the list of available output modules"
+          >
+            <Icon name="refresh" size={18} className={isRefreshing ? styles.rotating : undefined} />
           </Button>
-        </span>
-      </div>
+        </div>
+      </Section>
+
+      <Section title="Render queue" description="Queues the active composition.">
+        <div className={styles.queue}>
+          <Toggle
+            label="Start rendering right away"
+            isSelected={autoRender}
+            onChange={setAutoRender}
+          />
+          <Button
+            variant="key"
+            block
+            onPress={handleAddToRenderQueue}
+          >
+            Add to render queue
+          </Button>
+        </div>
+      </Section>
+
+      <Section title="Settings">
+        <Button
+          block
+          onPress={handleShowLocation}
+        >
+          <Icon name="folder_open" size={17} />
+          Show settings location
+        </Button>
+      </Section>
     </div>
   )
 }

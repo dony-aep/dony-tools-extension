@@ -1,0 +1,87 @@
+/* ============================================================
+   Button — one height (--control-h) across the whole panel.
+   ============================================================ */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  height: var(--control-h);
+  padding: 0 var(--s-3);
+  border-radius: var(--r-1);
+  font-size: var(--t-label);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+  transition: background-color var(--dur-1) var(--ease),
+              border-color var(--dur-1) var(--ease),
+              color var(--dur-1) var(--ease);
+}
+
+.button[data-disabled] {
+  cursor: default;
+  opacity: 0.4;
+}
+
+/* ── default: the fill is what makes it a button ── */
+.default {
+  background: var(--control);
+  border-color: var(--control-edge);
+  color: var(--ink-hi);
+}
+
+.default[data-hovered] {
+  background: var(--control-hover);
+  border-color: var(--control-edge-hover);
+}
+
+.default[data-pressed] {
+  background: var(--control-press);
+}
+
+/* ── key: the one primary action on a screen ── */
+.key {
+  background: var(--key);
+  border-color: var(--key);
+  color: var(--key-ink);
+  font-weight: 600;
+}
+
+.key[data-hovered] {
+  background: var(--key-hover);
+  border-color: var(--key-hover);
+}
+
+.key[data-pressed] {
+  background: var(--key-press);
+  border-color: var(--key-press);
+}
+
+/* ── quiet: chrome-level actions (back, close, refresh) ── */
+.quiet {
+  color: var(--ink);
+}
+
+.quiet[data-hovered] {
+  background: var(--veil);
+  color: var(--ink-hi);
+}
+
+.quiet[data-pressed] {
+  background: var(--veil-strong);
+}
+
+/* ── icon-only: square, and never smaller than a comfortable target ── */
+.iconOnly {
+  width: var(--control-h);
+  min-width: var(--control-h);
+  padding: 0;
+}
+
+.block {
+  width: 100%;
+}

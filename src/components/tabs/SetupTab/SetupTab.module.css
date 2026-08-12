@@ -1,86 +1,65 @@
-/* ============================================
-   SetupTab — Quick & Custom Setup
-   ============================================ */
+/* ============================================================
+   SetupTab — three ready-made project shapes, or build your own.
+   ============================================================ */
 
 .tab {
-  flex: 1;
-  padding: 16px 2px 18px;
-  animation: tabEnter 0.3s var(--ease);
+  animation: dt-rise var(--dur-3) var(--ease);
 }
 
-@keyframes tabEnter {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-2);
 }
 
-/* ── Section ── */
-.panel {
-  padding: 0 0 16px;
-  margin-bottom: 16px;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  border-bottom: 1px solid var(--border);
+/* A preset button states its own spec, so the ratio isn't a guess. */
+.preset {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  height: 52px;
+  padding: 0 var(--s-1);
+  background: var(--control);
+  border: 1px solid var(--control-edge);
+  border-radius: var(--r-1);
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease),
+              border-color var(--dur-1) var(--ease);
 }
 
-.panel:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
+.preset[data-hovered] {
+  background: var(--control-hover);
+  border-color: var(--control-edge-hover);
 }
 
-.panelTitle {
-  color: var(--text-muted);
-  font-size: 11px;
+.preset[data-pressed] {
+  background: var(--control-press);
+}
+
+.presetRatio {
+  font-size: var(--t-label);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+  color: var(--ink-hi);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
 }
 
-.panelDescription {
-  color: var(--text-secondary);
-  font-size: 12.5px;
-  font-weight: 400;
-  margin-bottom: 14px;
-  line-height: 1.5;
+.presetSpec {
+  font-size: var(--t-eyebrow);
+  letter-spacing: 0.02em;
+  color: var(--ink-lo);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
 }
 
-/* ── Preset Buttons Row ── */
-.presetButtons {
+.customRow {
   display: flex;
-  gap: 8px;
+  gap: var(--s-2);
 }
 
-.presetButtons button {
+.customRow > :first-child {
   flex: 1;
-  padding: 10px;
-  font-weight: 500;
-}
-
-/* ── Controls ── */
-.controls {
-  display: flex;
-  gap: 10px;
-  align-items: stretch;
-}
-
-.controls > span {
-  display: flex;
-  flex: 1;
-}
-
-.controls > span:last-child {
-  flex: 0;
-}
-
-.controls button {
-  width: 100%;
-  height: 100%;
 }

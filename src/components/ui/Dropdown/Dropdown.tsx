@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from 'react-aria-components'
 import type { Key } from 'react-aria-components'
+import { Icon } from '../Icon'
 import styles from './Dropdown.module.css'
 
 interface DropdownOption {
@@ -24,7 +25,10 @@ interface DropdownProps {
   showSearch?: boolean
   onChange: (value: string, label: string) => void
   id?: string
+  /** Visible label, linked to the control. Prefer this over `aria-label`. */
   label?: string
+  /** Place the label beside the control instead of above it. */
+  inlineLabel?: boolean
   'aria-label'?: string
 }
 
@@ -37,6 +41,7 @@ export function Dropdown({
   onChange,
   id,
   label,
+  inlineLabel = false,
   'aria-label': ariaLabel,
 }: DropdownProps) {
   const [searchTerm, setSearchTerm] = useState('')
@@ -60,14 +65,14 @@ export function Dropdown({
 
   return (
     <Select
-      className={styles.select}
+      className={inlineLabel ? `${styles.select} ${styles.inline}` : styles.select}
       selectedKey={value || null}
       onSelectionChange={handleSelectionChange}
       onOpenChange={(isOpen) => { if (!isOpen) setSearchTerm('') }}
       id={id}
-      aria-label={ariaLabel}
+      aria-label={label ? undefined : ariaLabel}
     >
-      {label && <Label>{label}</Label>}
+      {label && <Label className={styles.label}>{label}</Label>}
       <Button className={styles.trigger}>
         <SelectValue className={styles.triggerValue}>
           {({ selectedText }) => (
@@ -76,12 +81,12 @@ export function Dropdown({
             </span>
           )}
         </SelectValue>
-        <span className={`material-symbols-outlined ${styles.triggerIcon}`}>expand_more</span>
+        <Icon name="expand_more" size={20} className={styles.triggerIcon} />
       </Button>
       <Popover className={styles.popover} offset={4}>
         {showSearch && (
           <div className={styles.search}>
-            <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
+            <Icon name="search" size={18} className={styles.searchIcon} />
             <input
               className={styles.searchInput}
               type="text"
