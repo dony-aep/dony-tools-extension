@@ -7,6 +7,11 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ## [No publicado]
 
+### Corregido
+
+- **El panel abre en macOS.** After Effects 2022 para macOS corre sobre CEP 11, que nunca ejecuta un `<script type="module">` cargado desde `file://`: el archivo local llega con el tipo MIME vacío y el motor descarta el bundle, dejando el panel en negro. La build sale ahora como script clásico con `defer`.
+- **Los botones, las pestañas y las listas responden al ratón en macOS.** Ese mismo runtime declara `PointerEvent` pero no dispara ninguno con el ratón real, y todos los controles construidos sobre `react-aria-components` solo escuchan eventos de puntero en una build de producción. Un fallback reemite `pointerdown` y `pointerup` a partir de los eventos de ratón, y se desactiva en cuanto el motor envía un evento de puntero nativo, así que en Windows no cambia nada.
+
 ## [4.0.0] - 2026-08-11
 
 Una reconstrucción con dos objetivos: que el panel nunca interrumpa a After Effects,

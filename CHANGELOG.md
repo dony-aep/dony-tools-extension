@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The panel opens on macOS.** After Effects 2022 for macOS runs CEP 11, which never executes a `<script type="module">` loaded from `file://`: the local file arrives with an empty MIME type and the engine drops the bundle, leaving a black panel. The build now ships a classic deferred script.
+- **Buttons, tabs and lists respond to the mouse on macOS.** That same runtime declares `PointerEvent` but never fires one from real mouse input, and every control built on `react-aria-components` listens only for pointer events in a production build. A fallback re-emits `pointerdown` and `pointerup` from the mouse events, and switches itself off the moment the engine sends a native pointer event, so nothing changes on Windows.
+
 ## [4.0.0] - 2026-08-11
 
 A rebuild around two goals: the panel should never interrupt After Effects, and it
