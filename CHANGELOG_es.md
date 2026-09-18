@@ -7,17 +7,51 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ## [No publicado]
 
-### After Effects se detiene menos
+## [4.1.0] - 2026-09-18
 
-- **La mitad de llamadas al motor de scripting.** Cada llamada eran en realidad dos: una para la herramienta y otra para recoger los avisos que había encolado. After Effects no dibuja ni responde mientras corre cualquiera de las dos, así que cada acción lo congelaba dos veces. El host devuelve ahora su resultado y sus avisos juntos.
-- **Detectar Twixtor ya no toca tu proyecto.** El panel solo le preguntaba a After Effects qué efectos tiene cargados después de aplicar Twixtor a una capa desechable, lo que significaba una composición y un sólido creados y destruidos en tu proyecto, entradas sueltas en tu pila de deshacer y un proyecto marcado como modificado que no habías tocado. Quien no tenga Twixtor instalado obtiene ahora la respuesta gratis, la sonda que queda es un solo paso de deshacer, y el resultado se recuerda hasta que el panel se recarga en lugar de repetirse cada vez que abres la pestaña Twixtor.
-- **Los avisos ya no vuelven a renderizar el panel.** Un toast que entraba o salía reconstruía todas las pestañas, el modal y los hooks, tres veces por aviso.
-- **Una comprobación de actualizaciones por sesión.** La pestaña About volvía a preguntar a GitHub en cada visita. Ahora también tiene un límite de ocho segundos, así que una petición colgada deja de dejar la pestaña en «comprobando».
+Dos fallos impedían que el panel funcionara en macOS. Perseguirlos acabó en una revisión de
+todo lo demás que el panel hacía más veces de las necesarias.
 
 ### Corregido
 
-- **El panel abre en macOS.** After Effects 2022 para macOS corre sobre CEP 11, que nunca ejecuta un `<script type="module">` cargado desde `file://`: el archivo local llega con el tipo MIME vacío y el motor descarta el bundle, dejando el panel en negro. La build sale ahora como script clásico con `defer`.
-- **Los botones, las pestañas y las listas responden al ratón en macOS.** Ese mismo runtime declara `PointerEvent` pero no dispara ninguno con el ratón real, y todos los controles construidos sobre `react-aria-components` solo escuchan eventos de puntero en una build de producción. Un fallback reemite `pointerdown` y `pointerup` a partir de los eventos de ratón, y se desactiva en cuanto el motor envía un evento de puntero nativo, así que en Windows no cambia nada.
+- El panel ya no abre en negro en After Effects 2022 para macOS. CEP lo carga desde
+  `file://`, y un `<script type="module">` leído de ahí llega con el tipo MIME vacío, así que
+  el motor descarta el bundle sin decir nada. La build sale ahora como script clásico con
+  `defer`.
+- Los botones, las pestañas y las listas responden al ratón en macOS. Ese runtime declara
+  `PointerEvent` pero no dispara ninguno con un ratón real, y en una build de producción
+  `react-aria-components` no escucha nada más, así que ningún clic del panel llegaba a
+  ninguna parte. Un fallback reemite `pointerdown` y `pointerup` a partir de los eventos de
+  ratón y se apaga en cuanto el motor envía uno nativo, con lo que en Windows no cambia nada.
+- El zip de la release se descomprime bien en macOS. Estaba hecho con un compresor que
+  escribe los separadores de ruta de Windows, y macOS lo desempaquetaba como archivos sueltos
+  llamados `CSXS\manifest.xml`.
+- El zip ya no lleva `.debug`, que abría el depurador remoto en el puerto 8089 en cada
+  instalación. Las builds de diagnóstico lo siguen teniendo, con
+  `npm run package -- --with-debug`.
+
+### Cambiado
+
+- Cada acción costaba dos viajes al motor de scripting, uno para la herramienta y otro para
+  recoger los avisos que hubiera encolado. After Effects deja de dibujar y de responder
+  mientras dura cada uno, así que el segundo viaje era una congelación que nadie pidió. El
+  host devuelve ahora las dos cosas juntas.
+- Detectar Twixtor ya no toca tu proyecto. Antes respondía creando una composición y un
+  sólido, aplicando el efecto y borrándolo todo otra vez, lo que dejaba entradas en tu pila
+  de deshacer y marcaba el proyecto como modificado. Sin Twixtor instalado la respuesta sale
+  gratis; con él, lo que queda es un solo paso de deshacer, y se ejecuta una vez por sesión
+  del panel en lugar de en cada visita a la pestaña.
+- Los toasts dejaron de volver a renderizar el panel. Uno entrando y saliendo reconstruía
+  todas las pestañas, el modal y los hooks, tres veces.
+- La pestaña About consulta GitHub una vez por sesión en lugar de en cada visita, y se rinde
+  a los ocho segundos en vez de quedarse en «comprobando» indefinidamente.
+
+### Añadido
+
+- Las releases incluyen ahora un `.zxp` firmado. Se abre con el ZXP/UXP Installer, gratuito,
+  y con eso queda instalado: sin modo debug y sin clave de registro. El zip se sigue
+  publicando para quien prefiera copiar una carpeta, y ahora lleva `Add Keys.reg` al lado de
+  una carpeta con el nombre del id de la extensión.
 
 ## [4.0.0] - 2026-08-11
 

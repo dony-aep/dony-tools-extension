@@ -8,32 +8,52 @@ dony Tools is a comprehensive toolkit designed for Adobe After Effects, providin
 
 ## Current Version
 
-**v4.0.0** - Rail Navigation, Host-Derived Palette & Flat Controls
+**v4.1.0** - macOS Support, Signed .zxp & a Lighter Bridge
 
 For a detailed history of all changes, see the [Changelog](CHANGELOG.md).
 
 ## Installation
 
-1. **Download the Extension:**
-   - Download the latest version from the official website or repository.
+### For users: quick install (recommended)
+Each [release](https://github.com/dony-aep/dony-tools-extension/releases/latest) includes a signed `.zxp`. It needs no debug mode and no registry keys.
 
-2. **Install the Extension:**
-   - For Windows: Copy the folder to `C:\Program Files (x86)\Common Files\Adobe\CEP\extensions\`
-   - For Mac: Copy the folder to `/Library/Application Support/Adobe/CEP/extensions/`
-   
-   Note: You may need to create the extensions folder if it doesn't exist.
+1. Download and install the free [ZXP/UXP Installer by aescripts + aeplugins](https://aescripts.com/learn/zxp-installer/) (Windows and macOS).
+2. Download `dony-tools-vX.Y.Z.zxp` from the latest release.
+3. Close After Effects, then open the `.zxp` in the installer: drag it onto the window, or use **File > Open**.
+4. Open After Effects and go to **Window > Extensions > dony Tools**.
 
-3. **Enable Loading of Unsigned Extensions (if needed):**
-   - For Windows: Simply double-click the included `Add Keys.reg` file to automatically add the required registry key.
-   - For Mac: In the Terminal, run:
-     ```
-     defaults write com.adobe.CSXS.11 PlayerDebugMode 1
-     ```
-     Note: Adjust `CSXS.11` based on your After Effects major version if needed, e.g., `CSXS.9` for CC 2019, `CSXS.10` for CC 2020, etc.
+> If the installer says no compatible application was found and marks After Effects as "Action required", Adobe's own installer needs the Creative Cloud desktop app running and signed in. You can still install without it: click **Install Anyway**. If that fails, open the installer's settings (gear icon), turn on **Install for current user only**, and install again.
 
-4. **Access the Extension in After Effects:**
-   - Open Adobe After Effects
-   - Navigate to `Window > Extensions > dony Tools` to launch the panel
+### For users: manual install (zip)
+1. Locate the Adobe After Effects CEP Extensions folder:
+   - **Windows:** `%APPDATA%\Adobe\CEP\extensions` (or, system-wide: `C:\Program Files (x86)\Common Files\Adobe\CEP\extensions`)
+   - **macOS:** `~/Library/Application Support/Adobe/CEP/extensions` (or, system-wide: `/Library/Application Support/Adobe/CEP/extensions`)
+2. Extract the release zip and copy the `com.donyaep.DonyTools` folder it contains into this directory.
+3. Launch After Effects and open the extension via **Window > Extensions > dony Tools**.
+
+> Install into one folder, not both. After Effects loads every extension folder it finds, and two copies of the same extension share one ExtendScript global space, which produces errors that come and go.
+
+> Unsigned builds require enabling CEP debug mode once. On Windows, double-click `Add Keys.reg`, included in the release zip, or run:
+> ```
+> reg add "HKCU\Software\Adobe\CSXS.11" /v PlayerDebugMode /t REG_SZ /d 1 /f
+> ```
+> On macOS, in Terminal:
+> ```
+> defaults write com.adobe.CSXS.11 PlayerDebugMode 1 && killall cfprefsd
+> ```
+
+### For developers (build from source)
+Requires **Node.js 20.19+ or 22.12+** (Vite requirement).
+
+```bash
+npm install        # install dependencies
+npm run dev        # start the Vite dev server (browser preview)
+npm test           # run the test suite
+npm run build      # type-check + production build to dist/
+npm run deploy     # build + copy to %APPDATA%\Adobe\CEP\extensions (local install)
+npm run package    # build + zip dist/ into releases/ for distribution
+npm run sign       # build + signed .zxp in releases/ (needs ZXPSignCmd and a certificate)
+```
 
 ## Main Features
 

@@ -7,17 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### After Effects stops less often
+## [4.1.0] - 2026-09-18
 
-- **Half the calls into the scripting engine.** Every call used to be two: one for the tool and one to collect the notices it had queued. After Effects neither draws nor responds while either runs, so every action froze it twice. The host now returns its result and its notices together.
-- **Detecting Twixtor no longer touches your project.** The panel asked After Effects which effects it has loaded only after applying Twixtor to a throwaway layer, which meant a composition and a solid created and destroyed in your project, loose entries in your undo stack and a project marked as modified that you never touched. Anyone without Twixtor installed now gets the answer for free, the probe that remains is one undo step, and the result is remembered until the panel reloads instead of being repeated every time you open the Twixtor tab.
-- **Notices no longer re-render the panel.** A toast appearing or leaving rebuilt every tab, the modal and the hooks, three times per notice.
-- **One update check per session.** The About tab asked GitHub again on every visit. It also has an eight-second limit now, so a hung request stops leaving the tab on "checking".
+Two bugs kept the panel from working at all on macOS. Tracking them down turned into a look
+at everything else it was doing more often than it needed to.
 
 ### Fixed
 
-- **The panel opens on macOS.** After Effects 2022 for macOS runs CEP 11, which never executes a `<script type="module">` loaded from `file://`: the local file arrives with an empty MIME type and the engine drops the bundle, leaving a black panel. The build now ships a classic deferred script.
-- **Buttons, tabs and lists respond to the mouse on macOS.** That same runtime declares `PointerEvent` but never fires one from real mouse input, and every control built on `react-aria-components` listens only for pointer events in a production build. A fallback re-emits `pointerdown` and `pointerup` from the mouse events, and switches itself off the moment the engine sends a native pointer event, so nothing changes on Windows.
+- The panel no longer opens black in After Effects 2022 for macOS. CEP loads it from
+  `file://`, and a `<script type="module">` read from there arrives with an empty MIME type,
+  so the engine drops the bundle without saying anything. The build ships a classic deferred
+  script now.
+- Buttons, tabs and lists respond to the mouse on macOS. That runtime declares `PointerEvent`
+  but never fires one from a real mouse, and in a production build `react-aria-components`
+  listens for nothing else, so no click in the panel reached anything. A fallback re-emits
+  `pointerdown` and `pointerup` from the mouse events and switches itself off as soon as the
+  engine sends a native one, which leaves Windows untouched.
+- The release zip extracts correctly on macOS. It was built with a compressor that writes
+  Windows path separators, and macOS unpacked it as loose files called `CSXS\manifest.xml`.
+- The zip no longer carries `.debug`, which was opening the remote debugger on port 8089 on
+  every install. Diagnostic builds still get it, through `npm run package -- --with-debug`.
+
+### Changed
+
+- Every action used to cost two trips into the scripting engine, one for the tool and one to
+  pick up the notices it had queued. After Effects stops drawing and stops responding for the
+  length of each, so the second trip was a freeze nobody asked for. The host returns both
+  together now.
+- Twixtor detection no longer touches your project. It used to answer by creating a
+  composition and a solid, applying the effect and deleting all of it again, which left
+  entries in your undo stack and marked the project as modified. Without Twixtor installed
+  the answer is now free; with it, what remains is one undo step, and it runs once per panel
+  session rather than on every visit to the tab.
+- Toasts stopped re-rendering the panel. One entering and leaving used to rebuild every tab,
+  the modal and the hooks, three times over.
+- The About tab checks GitHub once per session instead of on every visit, and gives up after
+  eight seconds rather than sitting on "checking" indefinitely.
+
+### Added
+
+- Releases now include a signed `.zxp`. Open it with the free ZXP/UXP Installer and that is
+  the whole install: no debug mode, no registry key. The zip is still published for anyone
+  who would rather copy a folder, and it now carries `Add Keys.reg` beside a folder named
+  after the extension id.
 
 ## [4.0.0] - 2026-08-11
 

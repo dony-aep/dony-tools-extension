@@ -8,31 +8,52 @@ dony Tools es un completo kit de herramientas diseñado para Adobe After Effects
 
 ## Versión Actual
 
-**v4.0.0** - Navegación por Rail, Paleta Derivada del Host y Controles Planos
+**v4.1.0** - Compatibilidad con macOS, .zxp firmado y un puente más ligero
 
 Para un historial detallado de todos los cambios, consulta el [Registro de Cambios](CHANGELOG_es.md).
 
 ## Instalación
 
-1. **Descarga la Extensión:**
-   - Descarga la última versión desde el sitio web oficial o repositorio.
+### Para usuarios: instalación rápida (recomendada)
+Cada [release](https://github.com/dony-aep/dony-tools-extension/releases/latest) incluye un `.zxp` firmado. No necesita modo debug ni claves de registro.
 
-2. **Instala la Extensión:**
-   - Para Windows: Copia la carpeta a `C:\Program Files (x86)\Common Files\Adobe\CEP\extensions\`
-   - Para Mac: Copia la carpeta a `/Library/Application Support/Adobe/CEP/extensions/`
-   
-   Nota: Es posible que necesites crear la carpeta extensions si no existe.
+1. Descarga e instala el [ZXP/UXP Installer de aescripts + aeplugins](https://aescripts.com/learn/zxp-installer/), gratuito, para Windows y macOS.
+2. Descarga `dony-tools-vX.Y.Z.zxp` de la última release.
+3. Cierra After Effects y abre el `.zxp` en el instalador: arrástralo a la ventana o usa **File > Open**.
+4. Abre After Effects y ve a **Ventana > Extensiones > dony Tools**.
 
-3. **Habilitar la Carga de Extensiones No Firmadas (si es necesario):**
-   - Para Windows: Simplemente haz doble clic en el archivo `Add Keys.reg` incluido para añadir automáticamente la clave de registro requerida.
-   - Para Mac: En la Terminal, ejecuta:
-     ```
-     defaults write com.adobe.CSXS.11 PlayerDebugMode 1
-     ```
+> Si el instalador dice que no encontró ninguna aplicación compatible y marca After Effects con «Action required», es porque el instalador de Adobe necesita la app de escritorio de Creative Cloud abierta y con la sesión iniciada. Puedes instalar sin ella: pulsa **Install Anyway**. Si eso falla, abre los ajustes del instalador (icono del engranaje), activa **Install for current user only** e instala de nuevo.
 
-4. **Accede a la Extensión en After Effects:**
-   - Abre Adobe After Effects
-   - Navega a `Ventana > Extensiones > dony Tools` para ejecutar el panel
+### Para usuarios: instalación manual (zip)
+1. Localiza la carpeta de extensiones CEP de After Effects:
+   - **Windows:** `%APPDATA%\Adobe\CEP\extensions` (o, para todo el sistema: `C:\Program Files (x86)\Common Files\Adobe\CEP\extensions`)
+   - **macOS:** `~/Library/Application Support/Adobe/CEP/extensions` (o, para todo el sistema: `/Library/Application Support/Adobe/CEP/extensions`)
+2. Descomprime el zip de la release y copia en ese directorio la carpeta `com.donyaep.DonyTools` que viene dentro.
+3. Inicia After Effects y abre la extensión desde **Ventana > Extensiones > dony Tools**.
+
+> Instala en una sola carpeta, no en las dos. After Effects carga todas las carpetas de extensiones que encuentra, y dos copias de la misma extensión comparten un único espacio global de ExtendScript, lo que produce errores que aparecen y desaparecen.
+
+> Las builds sin firmar requieren activar el modo debug de CEP una vez. En Windows, haz doble clic en `Add Keys.reg`, que viene en el zip de la release, o ejecuta:
+> ```
+> reg add "HKCU\Software\Adobe\CSXS.11" /v PlayerDebugMode /t REG_SZ /d 1 /f
+> ```
+> En macOS, desde Terminal:
+> ```
+> defaults write com.adobe.CSXS.11 PlayerDebugMode 1 && killall cfprefsd
+> ```
+
+### Para desarrolladores (compilar desde el código fuente)
+Requiere **Node.js 20.19+ o 22.12+** (requisito de Vite).
+
+```bash
+npm install        # instalar dependencias
+npm run dev        # servidor de desarrollo de Vite (vista previa en navegador)
+npm test           # ejecutar la suite de tests
+npm run build      # chequeo de tipos + build de producción a dist/
+npm run deploy     # build + copia a %APPDATA%\Adobe\CEP\extensions (instalación local)
+npm run package    # build + zip de dist/ en releases/ para distribución
+npm run sign       # build + .zxp firmado en releases/ (requiere ZXPSignCmd y un certificado)
+```
 
 ## Características Principales
 

@@ -12,10 +12,11 @@ Requiere Node 20.19+ o 22.12+.
 
 ```bash
 npm run dev        # dev server de Vite (preview en navegador, sin AE)
-npm test           # vitest — 84 tests sobre src/lib/ y hooks puros
+npm test           # vitest — 103 tests sobre src/lib/ y hooks puros
 npm run build      # tsc -b + build de producción a dist/
 npm run deploy     # build + copia a %APPDATA%\Adobe\CEP\extensions\com.donyaep.DonyTools
-npm run package    # build + zip a releases/dony-tools-v{version}.zip
+npm run package    # build + zip a releases/dony-tools-v{version}.zip (sin .debug; --with-debug lo conserva)
+npm run sign       # build + .zxp firmado a releases/ (necesita tools/ y la contraseña del certificado)
 ```
 
 - Verificación estándar antes de commitear: `npm test` + `npm run build` (no hay linter). La UI se prueba a mano en AE: `npm run deploy` y luego **"Refresh dony Tools"** desde el flyout del panel. Solo hace falta reiniciar AE si cambió el bundle id.
@@ -49,7 +50,9 @@ Cada nivel se resuelve para un **ratio de contraste** contra la superficie sobre
 - **`public/jsx/` es ExtendScript (≈ES3)**: nada de `let`/`const`, arrow functions, template literals ni métodos ES5+ (`map`, `forEach`, `JSON` nativo…). TypeScript NO cubre estos archivos.
 - **Puente por namespace IIFE**: todo el host cuelga de `$.global.com_dony_tools`. No añadir globales sueltas. El namespace se reconstruye en cada carga para que las funciones eliminadas dejen de ser invocables sin reiniciar AE.
 - **Todo valor de usuario que se interpole en ExtendScript pasa por `escapeForEval()` o `toEvalLiteral()`** (`src/hooks/useCSInterface.ts`). Una comilla sin escapar produce un script malformado, y AE responde a eso con un **diálogo modal que bloquea su motor de scripting** hasta que alguien lo cierre.
-- **El host no puede llamar a `alert()` ni `confirm()`**, por lo mismo. Encola mensajes con `report()` y `AppContext` los drena a toasts tras cada llamada. Las confirmaciones usan `useConfirm`.
+- **El host no puede llamar a `alert()` ni `confirm()`**, por lo mismo. Encola mensajes con `report()` y el panel los convierte en toasts. Las confirmaciones usan `useConfirm`.
+- **Una sola llamada por acción.** `evalHostScript` envuelve la llamada con `wrapHostCall` (`src/lib/hostEnvelope.ts`) y el host devuelve resultado y avisos juntos desde `envelope()`. Cada `evalScript` congela After Effects mientras corre, así que no volver a partirlo en dos. Los contadores están en `window.__dtHostStats`, legibles con `shared/diagnostics/cdp-eval.mjs` por el puerto 8089.
+- **Nada del host puede tocar el proyecto sin grupo de deshacer**, ni siquiera para preguntar algo. `getTwixtorInfo()` lo aprendió a la mala: sondeaba creando una comp y un sólido, y dejaba el proyecto marcado como modificado. Antes de sondear, mirar si `app.effects` ya responde.
 - **Los grupos de deshacer se cierran en `finally`**, exactamente una vez, incluso si algo por encima lanza.
 - **`build.target: 'chrome88'` en `vite.config.ts` está fijado a mano** al Chromium de CEP 11. No subirlo ni dejar que Vite use su default.
 - **Extension ID `com.donyaep.DonyTools`** debe coincidir en `public/CSXS/manifest.xml`, `public/.debug`, `scripts/deploy.mjs` y `vite.config.ts`. El id anterior `com.dony.tools` (≤3.x) queda obsoleto y `deploy.mjs` lo limpia vía `LEGACY_EXTENSION_IDS`.
@@ -93,12 +96,13 @@ El update checker (`src/hooks/useUpdateChecker.ts`) consulta `releases/latest` d
 1. Subir `version` en `package.json` (única fuente de verdad).
 2. Añadir la sección `## [X.Y.Z] - AAAA-MM-DD` a ambos CHANGELOGs.
 3. `npm test` y `npm run build` en verde; commit + tag `vX.Y.Z`.
-4. `npm run package` → `releases/dony-tools-vX.Y.Z.zip`.
-5. `gh release create vX.Y.Z releases/dony-tools-vX.Y.Z.zip --title "dony Tools vX.Y.Z" --notes-file <notas>`.
+4. `npm run package` y `npm run sign` → el `.zip` y el `.zxp` en `releases/`.
+5. `gh release create vX.Y.Z releases/dony-tools-vX.Y.Z.zip releases/dony-tools-vX.Y.Z.zxp --title "dony Tools vX.Y.Z" --notes-file <notas>`.
 
 - **El tag DEBE ser `vX.Y.Z`.** Un tag mal formado rompe la detección de updates de todos los usuarios instalados.
 - El repo debe seguir **público**: el checker usa la API sin autenticación.
-- Para venta (Gumroad) el `.zxp` se firma con `ZXPSignCMD`; `npm run package` produce un zip **sin firmar** y `npm run deploy` es solo instalación local.
+- **El `.zxp` firmado se genera con `npm run sign`** y se adjunta a la release junto al zip. La contraseña del certificado se lee del archivo que indique `DT_CERT_PASSWORD_FILE`; el índice de secretos está en `extensions/CREDENTIALS.md` y el proceso completo en `extensions/ZXP_DISTRIBUTION.md`. `tools/` (con `ZXPSignCmd.exe` y `certificate.p12`) está en el `.gitignore`.
+- `npm run package` produce un zip **sin firmar**, para quien prefiera copiar la carpeta a mano, y `npm run deploy` es solo instalación local.
 
 ## Gotchas
 
