@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### After Effects stops less often
+
+- **Half the calls into the scripting engine.** Every call used to be two: one for the tool and one to collect the notices it had queued. After Effects neither draws nor responds while either runs, so every action froze it twice. The host now returns its result and its notices together.
+- **Detecting Twixtor no longer touches your project.** The panel asked After Effects which effects it has loaded only after applying Twixtor to a throwaway layer, which meant a composition and a solid created and destroyed in your project, loose entries in your undo stack and a project marked as modified that you never touched. Anyone without Twixtor installed now gets the answer for free, the probe that remains is one undo step, and the result is remembered until the panel reloads instead of being repeated every time you open the Twixtor tab.
+- **Notices no longer re-render the panel.** A toast appearing or leaving rebuilt every tab, the modal and the hooks, three times per notice.
+- **One update check per session.** The About tab asked GitHub again on every visit. It also has an eight-second limit now, so a hung request stops leaving the tab on "checking".
+
 ### Fixed
 
 - **The panel opens on macOS.** After Effects 2022 for macOS runs CEP 11, which never executes a `<script type="module">` loaded from `file://`: the local file arrives with an empty MIME type and the engine drops the bundle, leaving a black panel. The build now ships a classic deferred script.

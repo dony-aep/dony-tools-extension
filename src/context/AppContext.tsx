@@ -21,42 +21,32 @@ interface AppProviderProps {
   children: ReactNode
 }
 
-interface HostMessage {
-  kind: ToastKind
-  message: string
+const TOAST_KINDS: readonly string[] = ['success', 'warning', 'error', 'info']
+
+/** The host is the one that names the kind, so an unknown one falls back to 'info'. */
+function toToastKind(kind: string): ToastKind {
+  return TOAST_KINDS.indexOf(kind) === -1 ? 'info' : (kind as ToastKind)
 }
 
 export function AppProvider({ children }: AppProviderProps) {
   const cep = useCSInterface()
   const { push } = useToasts()
-  const { evalHostScript: rawEvalHostScript } = cep
+  const { evalHostScript: rawEvalHostScript, loadJSX } = cep
 
   useEffect(() => {
-    cep.loadJSX('hostscript.jsx')
-  }, [cep.loadJSX])
+    loadJSX('hostscript.jsx')
+  }, [loadJSX])
 
   /**
-   * Runs a host call, then drains anything the host queued through `report()`
-   * and surfaces it as toasts. The host no longer calls `alert()`, so this is
-   * the only path by which its messages reach the user.
+   * Runs a host call and shows as toasts whatever it queued through `report()`. The host
+   * cannot call `alert()`, so this is the only path by which its messages reach the user.
+   *
+   * Result and messages come back in the same round trip: see `src/lib/hostEnvelope.ts`.
    */
   const evalHostScript = useCallback(
     async (script: string): Promise<string> => {
-      const result = await rawEvalHostScript(script)
-
-      const raw = await rawEvalHostScript('takeMessages()')
-      if (raw) {
-        try {
-          const messages = JSON.parse(raw) as HostMessage[]
-          for (const entry of messages) {
-            if (entry && entry.message) push(entry.message, entry.kind)
-          }
-        } catch {
-          // A malformed queue must never break the action that just ran.
-          console.error('[host] could not parse queued messages:', raw)
-        }
-      }
-
+      const { result, messages } = await rawEvalHostScript(script)
+      for (const entry of messages) push(entry.message, toToastKind(entry.kind))
       return result
     },
     [rawEvalHostScript, push],

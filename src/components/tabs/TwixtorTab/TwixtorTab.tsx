@@ -44,6 +44,17 @@ const WARPING_OPTIONS = [
   { label: 'Forward w/ Smart Blend', value: '4' },
 ]
 
+/**
+ * Detection survives leaving the tab.
+ *
+ * App.tsx renders the tabs with `&&`, so switching away unmounts this component and coming
+ * back remounts it. Without this the effect below asked the host again every time, and the
+ * host answers by applying the effect to a throwaway layer. Module scope, not state: the
+ * plugins After Effects has loaded do not change while it is running, and a panel reload
+ * clears this along with everything else.
+ */
+let twixtorInfoCache: TwixtorInfo | null = null
+
 export function TwixtorTab() {
   const [speed, setSpeed] = useState('50')
   const [frameRate, setFrameRate] = useState('30')
@@ -52,19 +63,22 @@ export function TwixtorTab() {
   const [frameInterp, setFrameInterp] = useState('3')
   const [warping, setWarping] = useState('2')
   const [batchMode, setBatchMode] = useState(false)
-  const [twixtorInfo, setTwixtorInfo] = useState<TwixtorInfo | null>(null)
+  const [twixtorInfo, setTwixtorInfo] = useState<TwixtorInfo | null>(twixtorInfoCache)
   const { evalHostScript, notify } = useApp()
 
   useEffect(() => {
+    if (twixtorInfoCache) return
     let cancelled = false
     evalHostScript('getTwixtorInfo()').then((result) => {
-      if (cancelled) return
+      let info: TwixtorInfo
       try {
-        const info = JSON.parse(result) as TwixtorInfo
-        setTwixtorInfo(info)
+        info = JSON.parse(result) as TwixtorInfo
       } catch {
-        setTwixtorInfo({ installed: false, name: '', variant: '', compatible: false })
+        info = { installed: false, name: '', variant: '', compatible: false }
       }
+      // Cached even when the tab is gone: the next visit starts with the answer.
+      twixtorInfoCache = info
+      if (!cancelled) setTwixtorInfo(info)
     })
     return () => { cancelled = true }
   }, [evalHostScript])

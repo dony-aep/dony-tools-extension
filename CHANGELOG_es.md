@@ -7,6 +7,13 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ## [No publicado]
 
+### After Effects se detiene menos
+
+- **La mitad de llamadas al motor de scripting.** Cada llamada eran en realidad dos: una para la herramienta y otra para recoger los avisos que había encolado. After Effects no dibuja ni responde mientras corre cualquiera de las dos, así que cada acción lo congelaba dos veces. El host devuelve ahora su resultado y sus avisos juntos.
+- **Detectar Twixtor ya no toca tu proyecto.** El panel solo le preguntaba a After Effects qué efectos tiene cargados después de aplicar Twixtor a una capa desechable, lo que significaba una composición y un sólido creados y destruidos en tu proyecto, entradas sueltas en tu pila de deshacer y un proyecto marcado como modificado que no habías tocado. Quien no tenga Twixtor instalado obtiene ahora la respuesta gratis, la sonda que queda es un solo paso de deshacer, y el resultado se recuerda hasta que el panel se recarga en lugar de repetirse cada vez que abres la pestaña Twixtor.
+- **Los avisos ya no vuelven a renderizar el panel.** Un toast que entraba o salía reconstruía todas las pestañas, el modal y los hooks, tres veces por aviso.
+- **Una comprobación de actualizaciones por sesión.** La pestaña About volvía a preguntar a GitHub en cada visita. Ahora también tiene un límite de ocho segundos, así que una petición colgada deja de dejar la pestaña en «comprobando».
+
 ### Corregido
 
 - **El panel abre en macOS.** After Effects 2022 para macOS corre sobre CEP 11, que nunca ejecuta un `<script type="module">` cargado desde `file://`: el archivo local llega con el tipo MIME vacío y el motor descarta el bundle, dejando el panel en negro. La build sale ahora como script clásico con `defer`.

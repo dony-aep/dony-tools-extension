@@ -363,10 +363,9 @@ var donyToolsNamespace = ($.global.com_dony_tools = {});
 // =========================================================================
 // Message buffer
 //
-// The panel drains this after every host call and shows the entries as
-// in-panel toasts. Replaces alert(), which froze After Effects until the
-// user dismissed it -- a modal dialog for "please select a layer" stops the
-// whole application.
+// The panel shows these entries as in-panel toasts. Replaces alert(), which
+// froze After Effects until the user dismissed it -- a modal dialog for
+// "please select a layer" stops the whole application.
 //
 // ES3: no Array.forEach / JSON shorthand. json2.js above provides JSON.
 // =========================================================================
@@ -376,11 +375,24 @@ function report(kind, message) {
     __messages[__messages.length] = { kind: String(kind), message: String(message) };
 }
 
-/** Returns the queued messages as JSON and empties the queue. */
-function takeMessages() {
-    var out = JSON.stringify(__messages);
+/**
+ * Packs a host call's return value together with whatever it queued, so the panel
+ * collects both in one evalScript.
+ *
+ * Every evalScript runs on the host's main thread and After Effects neither draws nor
+ * responds while it does. Draining the queue used to cost a second round trip after each
+ * action, which doubled that freeze for no reason.
+ *
+ * Shape: {"r": "<the result, as a string>", "m": [{"kind": ..., "message": ...}, ...]}.
+ * A void return becomes "", which is what the panel already got from evalScript.
+ */
+function envelope(result) {
+    var payload = {
+        r: (result === undefined || result === null) ? "" : String(result),
+        m: __messages
+    };
     __messages = [];
-    return out;
+    return JSON.stringify(payload);
 }
 
 
@@ -426,17 +438,58 @@ function validateOffsetValues(offsetX, offsetY) {
     return "valid";
 }
 
+/**
+ * True when some installed effect looks like Twixtor.
+ *
+ * app.effects is a read-only array of every effect After Effects has loaded, with each
+ * entry's displayName, matchName and category. Asking it costs nothing and touches
+ * nothing, which is the whole point: the probe below has to apply the effect to a real
+ * layer, and for the many users who do not own Twixtor that was a composition created and
+ * destroyed in their project for an answer app.effects already had.
+ *
+ * Only used to rule Twixtor out. When it says yes, the probe still decides.
+ */
+function twixtorMightBeInstalled() {
+    var effects = app.effects;
+    if (!effects) return true; // Unknown: let the probe answer.
+    for (var i = 0; i < effects.length; i++) {
+        var entry = effects[i];
+        var name = String(entry.displayName) + " " + String(entry.matchName);
+        if (name.indexOf("Twixtor") !== -1 || name.indexOf("twixtor") !== -1) return true;
+    }
+    return false;
+}
+
 // Detecta si Twixtor está instalado y si es compatible (v5+)
 // Las propiedades usadas por la extensión (Speed %, Frame Rate, Motion Vectors,
 // Image Prep, Frame Interp, Warping) tienen los mismos nombres desde v5 hasta v8.
 // Versiones anteriores a v5 usan nombres distintos.
+//
+// The answer is cached for as long as this namespace lives, which is one panel session:
+// the panel reloads hostscript.jsx on mount and "Refresh dony Tools" rebuilds it. Without
+// the cache, switching away from the Twixtor tab and back ran the whole probe again.
+var __twixtorInfo = null;
+
 function getTwixtorInfo() {
+    if (__twixtorInfo !== null) return __twixtorInfo;
+
     var tempComp = null;
     var tempSolid = null;
     var tempSolidSource = null;
+    var undoStarted = false;
     var result = { installed: false, name: "", variant: "", compatible: false };
 
+    if (!twixtorMightBeInstalled()) {
+        __twixtorInfo = JSON.stringify(result);
+        return __twixtorInfo;
+    }
+
     try {
+        // The probe adds and removes a composition and a solid. Without a group those land
+        // in the user's undo stack as separate steps, for something they never asked for.
+        app.beginUndoGroup("Detect Twixtor");
+        undoStarted = true;
+
         tempComp = app.project.items.addComp("__twixtor_detect__", 100, 100, 1, 1, 24);
         tempSolid = tempComp.layers.addSolid([0, 0, 0], "__detect__", 100, 100, 1);
         tempSolidSource = tempSolid.source;
@@ -469,9 +522,11 @@ function getTwixtorInfo() {
             }
         }
 
-        return JSON.stringify(result);
+        __twixtorInfo = JSON.stringify(result);
+        return __twixtorInfo;
     } catch (e) {
         result.error = e.toString();
+        // A failed probe is not cached: the next call gets to try again.
         return JSON.stringify(result);
     } finally {
         if (tempSolid) {
@@ -496,6 +551,12 @@ function getTwixtorInfo() {
                     tempSolidSource.remove();
                 } catch (e2) {}
             }
+        }
+
+        if (undoStarted) {
+            try {
+                app.endUndoGroup();
+            } catch (e) {}
         }
     }
 }
@@ -1588,5 +1649,8 @@ exports.loadPresetValues = loadPresetValues;
 exports.deletePreset = deletePreset;
 exports.showPresetsLocation = showPresetsLocation;
 exports.createDefaultSetup = createDefaultSetup;
-exports.takeMessages = takeMessages;
+// Both are part of the bridge rather than tools: the panel wraps every call in envelope(),
+// and uses report() to surface a throw that escaped a tool's own try/catch.
+exports.envelope = envelope;
+exports.report = report;
 })(donyToolsNamespace);

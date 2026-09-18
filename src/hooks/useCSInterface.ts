@@ -1,4 +1,14 @@
-import { useRef, useCallback } from 'react'
+import { useRef, useCallback, useMemo } from 'react'
+import {
+  HOST_NOT_LOADED,
+  parseHostEnvelope,
+  wrapHostCall,
+  type HostEnvelope,
+} from '../lib/hostEnvelope'
+import { createHostStats, hostCallName, recordCall, type HostStats } from '../lib/hostStats'
+
+/** The private ExtendScript namespace every host function of this extension hangs off. */
+const HOST_NAMESPACE = 'com_dony_tools'
 
 /**
  * Returns true when running inside Adobe CEP (After Effects panel).
@@ -15,6 +25,15 @@ function isInsideCEP(): boolean {
 
 /** Shared flag – evaluated once */
 const CEP_AVAILABLE = isInsideCEP()
+
+// Each evalScript occupies After Effects' main thread. These counters say how many calls
+// the panel makes and how long the host takes, which is what to measure before touching
+// anything in the bridge.
+const hostStats: HostStats = createHostStats(Date.now())
+if (CEP_AVAILABLE) {
+  // Read with shared/diagnostics/cdp-eval.mjs over the port in public/.debug.
+  ;(window as Window & { __dtHostStats?: HostStats }).__dtHostStats = hostStats
+}
 
 /**
  * Escape a string before it is embedded in an ExtendScript string literal.
@@ -82,8 +101,7 @@ export function toEvalLiteral(value: unknown): string {
   return out
 }
 
-/** Returned by evalHostScript when the host JSX never loaded. */
-export const HOST_NOT_LOADED = 'hostscript_not_loaded'
+export { HOST_NOT_LOADED }
 
 /**
  * Custom hook that provides access to the CEP CSInterface.
@@ -136,20 +154,24 @@ export function useCSInterface() {
   )
 
   /**
-   * Evaluate a method exposed by this extension's private hostscript namespace.
+   * Call a method exposed by this extension's private hostscript namespace and collect
+   * both its return value and the notices it queued, in a single round trip.
    *
    * Interpolated values must go through `escapeForEval` — this builds source
    * text, so an unescaped quote is a syntax error, not a bad argument.
    */
   const evalHostScript = useCallback(
-    async (script: string): Promise<string> => {
-      const result = await evalScript(
-        `$.global.com_dony_tools ? $.global.com_dony_tools.${script} : "${HOST_NOT_LOADED}"`,
-      )
-      if (result === HOST_NOT_LOADED) {
-        console.error('[host] hostscript.jsx is not loaded; call ignored:', script)
+    async (call: string): Promise<HostEnvelope> => {
+      const script = wrapHostCall(HOST_NAMESPACE, call)
+      const startedAt = Date.now()
+      const raw = await evalScript(script)
+      recordCall(hostStats, hostCallName(script), Date.now() - startedAt, raw === '')
+
+      if (raw === HOST_NOT_LOADED) {
+        console.error('[host] hostscript.jsx is not loaded; call ignored:', call)
+        return { result: '', messages: [] }
       }
-      return result
+      return parseHostEnvelope(raw)
     },
     [evalScript],
   )
@@ -221,14 +243,29 @@ export function useCSInterface() {
     [getCSInterface],
   )
 
-  return {
-    csInterface: getCSInterface(),
-    evalScript,
-    evalHostScript,
-    loadJSX,
-    openURL,
-    setFlyoutMenu,
-    addEventListener,
-    removeEventListener,
-  }
+  // Every callback above is stable, so the object may be too. Returning a literal made it
+  // a fresh value on every render, and AppContext carries it in the dependencies of the
+  // useMemo that builds its own value: one render here re-rendered every consumer.
+  return useMemo(
+    () => ({
+      csInterface: getCSInterface(),
+      evalScript,
+      evalHostScript,
+      loadJSX,
+      openURL,
+      setFlyoutMenu,
+      addEventListener,
+      removeEventListener,
+    }),
+    [
+      getCSInterface,
+      evalScript,
+      evalHostScript,
+      loadJSX,
+      openURL,
+      setFlyoutMenu,
+      addEventListener,
+      removeEventListener,
+    ],
+  )
 }

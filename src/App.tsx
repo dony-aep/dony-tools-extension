@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useApp } from './context/AppContext'
 import { useHostTheme } from './hooks/useHostTheme'
 import { TwixtorTab } from './components/tabs/TwixtorTab'
@@ -76,25 +76,22 @@ export function App() {
     }
   }, [setFlyoutMenu, addEventListener, removeEventListener])
 
-  // Check scrollbar presence
-  const checkScrollbar = useCallback(() => {
+  // The gutter changes when the content overflows, so the check has to run whenever either
+  // the panel or the content changes size. A ResizeObserver on both sees the tab swap, the
+  // panel being dragged and a section expanding, which a window resize listener plus a
+  // timer after the tab change only approximated.
+  useEffect(() => {
     const el = tabContentRef.current
-    if (el) {
-      setHasScrollbar(el.scrollHeight > el.clientHeight)
-    }
-  }, [])
-
-  useEffect(() => {
-    checkScrollbar()
-    window.addEventListener('resize', checkScrollbar)
-    return () => window.removeEventListener('resize', checkScrollbar)
-  }, [checkScrollbar])
-
-  // Re-check scrollbar when tab changes
-  useEffect(() => {
-    const timeoutId = window.setTimeout(checkScrollbar, 50)
-    return () => window.clearTimeout(timeoutId)
-  }, [activeTab, checkScrollbar])
+    if (!el) return
+    const check = () => setHasScrollbar(el.scrollHeight > el.clientHeight)
+    check()
+    const observer = new ResizeObserver(check)
+    observer.observe(el)
+    // The scroll container's own box does not change when its contents grow, so the child
+    // is what reports the overflow.
+    if (el.firstElementChild) observer.observe(el.firstElementChild)
+    return () => observer.disconnect()
+  }, [activeTab])
 
   const openTab = [...TOOLS, ...META].find((t) => t.id === activeTab) ?? TOOLS[0]
 

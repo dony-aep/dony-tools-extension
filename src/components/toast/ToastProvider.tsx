@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -125,8 +126,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // A literal here would be a new value on every toast that enters or leaves, and this
+  // context sits above AppContext: the whole panel would re-render three times per notice.
+  const context = useMemo<ToastContextValue>(() => ({ push }), [push])
+
   return (
-    <ToastContext.Provider value={{ push }}>
+    <ToastContext.Provider value={context}>
       {children}
       <div className={styles.viewport} aria-live="polite" aria-label="Notifications">
         {toasts.map((toast) => (
