@@ -34,13 +34,17 @@ todo lo demás que el panel hacía más veces de las necesarias.
 
 - Cada acción costaba dos viajes al motor de scripting, uno para la herramienta y otro para
   recoger los avisos que hubiera encolado. After Effects deja de dibujar y de responder
-  mientras dura cada uno, así que el segundo viaje era una congelación que nadie pidió. El
-  host devuelve ahora las dos cosas juntas.
-- Detectar Twixtor ya no toca tu proyecto. Antes respondía creando una composición y un
-  sólido, aplicando el efecto y borrándolo todo otra vez, lo que dejaba entradas en tu pila
-  de deshacer y marcaba el proyecto como modificado. Sin Twixtor instalado la respuesta sale
-  gratis; con él, lo que queda es un solo paso de deshacer, y se ejecuta una vez por sesión
-  del panel en lugar de en cada visita a la pestaña.
+  mientras dura cada uno, así que el segundo viaje era una congelación que nadie pidió. Mover
+  el anchor point costaba cuatro, porque antes mandaba los desplazamientos al host para que
+  los comprobara, cuando el panel ya los había comprobado. Ahora cada acción es un solo viaje.
+- Detectar Twixtor deja mucho menos rastro. Antes creaba una composición y un sólido,
+  aplicaba el efecto y lo borraba todo otra vez en cada visita a la pestaña, lo que añadía
+  pasos de deshacer, dejaba una carpeta Solids vacía en un proyecto nuevo y marcaba el
+  proyecto como modificado. Sin Twixtor instalado, el panel lee ahora la lista de efectos que
+  After Effects tiene cargados y no crea nada. Con Twixtor la comprobación todavía tiene que
+  aplicar el efecto, porque esa lista no dice qué versión tienes, pero se hace una vez por
+  sesión del panel, como un solo paso de deshacer, y borra la carpeta Solids que haya creado.
+  El proyecto sigue apareciendo como modificado.
 - Los toasts dejaron de volver a renderizar el panel. Uno entrando y saliendo reconstruía
   todas las pestañas, el modal y los hooks, tres veces.
 - La pestaña About consulta GitHub una vez por sesión en lugar de en cada visita, y se rinde

@@ -424,28 +424,18 @@ function parseJSON(str) {
 
 
 
-// Función para validar los valores de offset
-function validateOffsetValues(offsetX, offsetY) {
-    // Validar que los valores de offset sean números válidos
-    offsetX = parseFloat(offsetX);
-    offsetY = parseFloat(offsetY);
-    
-    if (isNaN(offsetX) || isNaN(offsetY)) {
-        report("warning", "Please enter valid numbers for offset values");
-        return "invalid_offset";
-    }
-    
-    return "valid";
-}
-
 /**
  * True when some installed effect looks like Twixtor.
  *
  * app.effects is a read-only array of every effect After Effects has loaded, with each
- * entry's displayName, matchName and category. Asking it costs nothing and touches
- * nothing, which is the whole point: the probe below has to apply the effect to a real
- * layer, and for the many users who do not own Twixtor that was a composition created and
- * destroyed in their project for an answer app.effects already had.
+ * entry's displayName, matchName and category. It touches nothing in the project, which
+ * is the whole point: the probe below has to apply the effect to a real layer, and for
+ * the many users who do not own Twixtor that was a composition created and destroyed in
+ * their project for an answer app.effects already had.
+ *
+ * It is not free: reading it took 200 ms with 1,396 effects on AE 2026 for Windows and
+ * about 900 ms in a macOS VM. Every access rebuilds the whole array, so read it once and
+ * loop over the copy; indexing app.effects[i] inside the loop hangs After Effects.
  *
  * Only used to rule Twixtor out. When it says yes, the probe still decides.
  */
@@ -476,6 +466,7 @@ function getTwixtorInfo() {
     var tempComp = null;
     var tempSolid = null;
     var tempSolidSource = null;
+    var tempSolidsFolder = null;
     var undoStarted = false;
     var result = { installed: false, name: "", variant: "", compatible: false };
 
@@ -490,9 +481,17 @@ function getTwixtorInfo() {
         app.beginUndoGroup("Detect Twixtor");
         undoStarted = true;
 
+        var itemsBefore = app.project.numItems;
         tempComp = app.project.items.addComp("__twixtor_detect__", 100, 100, 1, 1, 24);
         tempSolid = tempComp.layers.addSolid([0, 0, 0], "__detect__", 100, 100, 1);
         tempSolidSource = tempSolid.source;
+        // addSolid files the solid under a root "Solids" folder and creates that folder when
+        // the project has none, so a fresh project kept an empty one after the probe. The
+        // name is localized, so the folder is recognized by the item count instead: comp,
+        // solid and folder make three new items, comp and solid alone make two.
+        if (app.project.numItems - itemsBefore === 3) {
+            tempSolidsFolder = tempSolidSource.parentFolder;
+        }
         var fx = null;
         
         // Intentar Twixtor Pro primero, luego Twixtor regular
@@ -551,6 +550,14 @@ function getTwixtorInfo() {
                     tempSolidSource.remove();
                 } catch (e2) {}
             }
+        }
+
+        if (tempSolidsFolder) {
+            try {
+                if (tempSolidsFolder !== app.project.rootFolder && tempSolidsFolder.numItems === 0) {
+                    tempSolidsFolder.remove();
+                }
+            } catch (e) {}
         }
 
         if (undoStarted) {
@@ -1628,7 +1635,6 @@ function createDefaultSetup(aspectRatio) {
 
 exports.getScriptPath = getScriptPath;
 exports.parseJSON = parseJSON;
-exports.validateOffsetValues = validateOffsetValues;
 exports.getTwixtorInfo = getTwixtorInfo;
 exports.precomposeAndApplyTwixtor = precomposeAndApplyTwixtor;
 exports.moveAnchorPoint = moveAnchorPoint;

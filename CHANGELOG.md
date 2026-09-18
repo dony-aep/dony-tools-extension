@@ -32,13 +32,16 @@ at everything else it was doing more often than it needed to.
 
 - Every action used to cost two trips into the scripting engine, one for the tool and one to
   pick up the notices it had queued. After Effects stops drawing and stops responding for the
-  length of each, so the second trip was a freeze nobody asked for. The host returns both
-  together now.
-- Twixtor detection no longer touches your project. It used to answer by creating a
-  composition and a solid, applying the effect and deleting all of it again, which left
-  entries in your undo stack and marked the project as modified. Without Twixtor installed
-  the answer is now free; with it, what remains is one undo step, and it runs once per panel
-  session rather than on every visit to the tab.
+  length of each, so the second trip was a freeze nobody asked for. Moving the anchor point
+  cost four, because it first sent the offsets to the host to be checked, after the panel
+  had already checked them. Each action is a single trip now.
+- Twixtor detection leaves much less behind. It used to create a composition and a solid,
+  apply the effect and delete it all again on every visit to the tab, which added undo steps,
+  left an empty Solids folder in a new project and marked the project as modified. Without
+  Twixtor installed, the panel now reads the list of effects After Effects has loaded and
+  creates nothing. With Twixtor the check still has to apply the effect, because that list
+  does not say which version you have, but it runs once per panel session as a single undo
+  step and removes the Solids folder it created. The project still shows as modified.
 - Toasts stopped re-rendering the panel. One entering and leaving used to rebuild every tab,
   the modal and the hooks, three times over.
 - The About tab checks GitHub once per session instead of on every visit, and gives up after

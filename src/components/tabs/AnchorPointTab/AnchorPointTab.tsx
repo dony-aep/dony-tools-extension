@@ -38,15 +38,10 @@ export function AnchorPointTab() {
         return
       }
 
-      const validationResult = await evalHostScript(
-        `validateOffsetValues(${offsetX}, ${offsetY})`,
+      const result = await evalHostScript(
+        `moveAnchorPoint("${position}", ${offsetX}, ${offsetY})`,
       )
-      if (validationResult === 'valid') {
-        const result = await evalHostScript(
-          `moveAnchorPoint("${position}", ${offsetX}, ${offsetY})`,
-        )
-        console.log('Move anchor result:', result)
-      }
+      console.log('Move anchor result:', result)
     },
     [offsetX, offsetY, evalHostScript, notify],
   )
