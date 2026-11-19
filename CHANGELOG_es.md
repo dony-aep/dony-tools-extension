@@ -7,6 +7,14 @@ y este proyecto se adhiere al [Versionado Semántico](https://semver.org/lang/es
 
 ## [No publicado]
 
+### Corregido
+
+- El texto sale en Google Sans también con el panel instalado para todos los usuarios, en
+  `C:\Program Files (x86)\Common Files\Adobe\CEP\extensions`, donde lo pone el ZXP Installer de
+  aescripts. El código armaba la URL de la fuente al abrir el panel, y los paréntesis de esa
+  ruta la invalidaban, así que el texto salía en serif. Ahora los estilos van en su propio
+  `style.css`, con URL relativas.
+
 ## [4.1.0] - 2026-09-18
 
 Dos fallos impedían que el panel funcionara en macOS. Perseguirlos acabó en una revisión de
