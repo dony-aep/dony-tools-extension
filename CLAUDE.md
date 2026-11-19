@@ -5,7 +5,7 @@ render queue and project setup. Floor: CEP 11 / AE 2022 / Chromium 88. Shipped o
 GitHub Releases.
 
 Workspace-wide rules (bridge, build target, UI stack, offline assets) live in
-`../../CLAUDE.md`. Path-scoped rules in `.claude/rules/` load when you open the files they
+`../../../CLAUDE.md`. Path-scoped rules in `.claude/rules/` load when you open the files they
 cover: `host-jsx.md` (public/jsx), `styling.md` (CSS and the palette), `icons.md`.
 
 ## Commands
@@ -68,5 +68,5 @@ The update checker (`src/hooks/useUpdateChecker.ts`) reads `releases/latest` of
   `npm test` and `npm run build`, commit and tag, `npm run package` and `npm run sign`, then
   `gh release create vX.Y.Z releases/dony-tools-vX.Y.Z.zip releases/dony-tools-vX.Y.Z.zxp
   --title "dony Tools vX.Y.Z"` with the English changelog section as notes.
-- Signing details: `extensions/ZXP_DISTRIBUTION.md`. Secret locations:
-  `extensions/CREDENTIALS.md`.
+- Signing details: `extensions/docs/ZXP_DISTRIBUTION.md`. Secret locations:
+  `extensions/docs/CREDENTIALS.md`.
