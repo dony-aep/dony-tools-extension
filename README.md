@@ -8,7 +8,7 @@ dony Tools is a comprehensive toolkit designed for Adobe After Effects, providin
 
 ## Current Version
 
-**v4.1.0** - macOS Support, Signed .zxp & a Lighter Bridge
+**v4.1.1** - Fonts Load When Installed for All Users
 
 For a detailed history of all changes, see the [Changelog](CHANGELOG.md).
 

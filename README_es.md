@@ -8,7 +8,7 @@ dony Tools es un completo kit de herramientas diseñado para Adobe After Effects
 
 ## Versión Actual
 
-**v4.1.0** - Compatibilidad con macOS, .zxp firmado y un puente más ligero
+**v4.1.1** - Las fuentes cargan con la instalación para todos los usuarios
 
 Para un historial detallado de todos los cambios, consulta el [Registro de Cambios](CHANGELOG_es.md).
 

@@ -7,13 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.1.1] - 2026-11-19
+
 ### Fixed
 
 - The text displays in Google Sans when the panel is installed for all users, in
   `C:\Program Files (x86)\Common Files\Adobe\CEP\extensions`, which is where the aescripts ZXP
   Installer puts it. The bundle built its font URL when the panel opened, and the parentheses
-  in that path made the browser drop it, so the text fell back to a serif font. The styles now
-  ship in their own `style.css` with relative URLs.
+  in that path made the browser drop it, so the text fell back to the system font. The styles
+  now ship in their own `style.css` with relative URLs.
 
 ## [4.1.0] - 2026-09-18
 
